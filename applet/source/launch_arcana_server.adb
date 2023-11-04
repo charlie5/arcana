@@ -1,13 +1,14 @@
 with
-     Chat.Server,
+     arcana.Server,
+
      ada.Exceptions,
      ada.Characters.latin_1,
      ada.Text_IO;
 
 
-procedure launch_chat_Server
+procedure launch_arcana_Server
 --
--- Launches the Chat server.
+-- Launches the Arcana server.
 --
 is
    use ada.Text_IO;
@@ -21,7 +22,7 @@ begin
    end loop;
 
    put_Line ("Shutting down.");
-   Chat.Server.shutdown;
+   arcana.Server.shutdown;
 
 exception
    when E : others =>
@@ -33,4 +34,4 @@ exception
       put (ada.Characters.latin_1.ESC & "[1A");   -- Move cursor up.
       put_Line ("________________________________________________________________________");
       new_Line;
-end launch_chat_Server;
+end launch_arcana_Server;

@@ -1,5 +1,5 @@
 with
-     Chat.Server,
+     arcana.Server,
 
      lace.Response,
      lace.Observer,
@@ -10,7 +10,7 @@ with
      ada.Text_IO;
 
 
-package body Chat.Client.local
+package body arcana.Client.local
 is
    -- Utility
    --
@@ -21,7 +21,7 @@ is
    --
    type Show is new lace.Response.item with null record;
 
-   -- Response is to display the chat message on the users console.
+   -- Response is to display the arcana message on the users console.
    --
    overriding
    procedure respond (Self : in out Show;   to_Event : in lace.Event.item'Class)
@@ -33,7 +33,7 @@ is
       put_Line (the_Message.Text (1 .. the_Message.Length));
    end respond;
 
-   the_Response : aliased Chat.Client.local.show;
+   the_Response : aliased arcana.Client.local.show;
 
 
 
@@ -91,7 +91,7 @@ is
       lace.Event.utility.connect (the_Observer  => Self'unchecked_Access,
                                   to_Subject    => other_Client.as_Subject,
                                   with_Response => the_Response'Access,
-                                  to_Event_Kind => to_Kind (Chat.Client.Message'Tag));
+                                  to_Event_Kind => to_Kind (arcana.Client.Message'Tag));
       put_Line (other_Client.Name & " is here.");
    end register_Client;
 
@@ -106,14 +106,14 @@ is
    begin
       begin
          Self.as_Subject.deregister (other_Client_as_Observer,
-                                     to_Kind (Chat.Client.Message'Tag));
+                                     to_Kind (arcana.Client.Message'Tag));
       exception
          when constraint_Error =>
             raise unknown_Client with "Other client not known. Deregister is not required.";
       end;
 
       Self.as_Observer.rid (the_Response'unchecked_Access,
-                            to_Kind (Chat.Client.Message'Tag),
+                            to_Kind (arcana.Client.Message'Tag),
                             other_Client_Name);
 
       put_Line (other_Client_Name & " leaves.");
@@ -134,7 +134,7 @@ is
 
    task check_Server_lives
    is
-      entry start (Self : in Chat.Client.local.view);
+      entry start (Self : in arcana.Client.local.view);
       entry halt;
    end check_Server_lives;
 
@@ -142,11 +142,11 @@ is
    is
       use ada.Text_IO;
       Done : Boolean := False;
-      Self : Chat.Client.local.view;
+      Self : arcana.Client.local.view;
    begin
       loop
          select
-            accept start (Self : in Chat.Client.local.view)
+            accept start (Self : in arcana.Client.local.view)
             do
                check_Server_lives.Self := Self;
             end start;
@@ -162,7 +162,7 @@ is
          exit when Done;
 
          begin
-            Chat.Server.ping;
+            arcana.Server.ping;
          exception
             when system.RPC.communication_Error =>
                put_Line ("The Server has died. Press <Enter> to exit.");
@@ -180,16 +180,16 @@ is
 
 
 
-   procedure start (Self : in out Chat.Client.local.item)
+   procedure start (Self : in out arcana.Client.local.item)
    is
       use ada.Text_IO;
    begin
       -- Setup
       --
       begin
-         Chat.Server.register (Self'unchecked_Access);   -- Register our client with the Server.
+         arcana.Server.register (Self'unchecked_Access);   -- Register our client with the Server.
       exception
-         when Chat.Server.Name_already_used =>
+         when arcana.Server.Name_already_used =>
             put_Line (+Self.Name & " is already in use.");
             check_Server_lives.halt;
             return;
@@ -200,7 +200,7 @@ is
       check_Server_lives.start (Self'unchecked_Access);
 
       declare
-         Peers : constant Chat.Client.views := Chat.Server.all_Clients;
+         Peers : constant arcana.Client.views := arcana.Server.all_Clients;
       begin
          for i in Peers'Range
          loop
@@ -224,7 +224,7 @@ is
          declare
             procedure broadcast (the_Text : in String)
             is
-               the_Message : constant Chat.Client.Message := (Length (Self.Name) + 2 + the_Text'Length,
+               the_Message : constant arcana.Client.Message := (Length (Self.Name) + 2 + the_Text'Length,
                                                               +Self.Name & ": " & the_Text);
             begin
                Self.emit (the_Message);
@@ -247,7 +247,7 @@ is
         and not Self.Server_is_dead
       then
          begin
-            Chat.Server.deregister (Self'unchecked_Access);
+            arcana.Server.deregister (Self'unchecked_Access);
          exception
             when system.RPC.communication_Error =>
                Self.Server_is_dead := True;
@@ -256,7 +256,7 @@ is
          if not Self.Server_is_dead
          then
             declare
-               Peers : constant Chat.Client.views := Chat.Server.all_Clients;
+               Peers : constant arcana.Client.views := arcana.Server.all_Clients;
             begin
                for i in Peers'Range
                loop
@@ -304,4 +304,4 @@ is
    --  end last_chance_Handler;
 
 
-end Chat.Client.local;
+end arcana.Client.local;

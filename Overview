@@ -1,29 +1,28 @@
-Chat
-~~~~
+Arcana
+~~~~~~
 
-   Provides a simple demonstration of the Ada 'Distributed Systems Annex' (DSA).
+   An online real-time multi-player medieval fantasy roleplaying game.
 
 
 
 Requirements
 ~~~~~~~~~~~~
 
-- Provide an application which allows users to join and leave a single chat room.
+- Provide an application which allows users to join and leave a single arcana room.
 - All users should be informed when a user enters or leaves.
 
-- Users may enter chat messages, which will be displayed on all users UI.
-- Chat messages should contain a timestamp, name of the user from which the message originates and the message itself.
+- Users may enter arcana messages, which will be displayed on all users UI.
+- Arcana messages should contain a timestamp, name of the user from which the message originates and the message itself.
 
 - Should allow for various Client UI versions (ie console, ncurses, GTK, QT4, et al).
 
 
 
 
-Versions
+Variants
 ~~~~~~~~
 
 Development: 'fused'   Builds a single executable which may be developed/debugged/tested as with any normal Ada program.
-
 Release:     'dsa'     Builds a distributed system comprising a server partition and a client partition.
 
 
@@ -32,11 +31,11 @@ Release:     'dsa'     Builds a distributed system comprising a server partition
 Folder Layout
 ~~~~~~~~~~~~~
 
-chat/applet/chat: Contains a folder each for the single executable 'fused' (development) and the distributed 'dsa' (release) versions.
+arcana/applet/arcana: Contains a folder each for the single executable 'fused' (development) and the distributed 'dsa' (release) versions.
 
-chat/library:     Contains gnat project files for the common code in the 'source' folder.
+arcana/library:     Contains gnat project files for the common code in the 'source' folder.
 
-chat/source:      Contains source files common to both the fused and dsa versions.
+arcana/source:      Contains source files common to both the fused and dsa versions.
 
 
 
@@ -50,13 +49,13 @@ Polyorb is required.
 
 Fused:
 
-$ cd chat/applet/chat/fused
-$ gnatmake -P chat_fused
+$ cd arcana/applet/arcana/fused
+$ gnatmake -P arcana_fused
 
 
 DSA:
 
-$ cd chat/applet/chat/dsa
+$ cd arcana/applet/arcana/dsa
 $ ./builder
 
 
@@ -70,29 +69,29 @@ LAN:
 
 Open a new terminal
 
-$ cd chat/applet/chat/dsa/test/po_cos_naming
+$ cd arcana/applet/arcana/dsa/test/po_cos_naming
 $ po_cos_naming
 
 
 Open a new terminal
 
-$ cd chat/applet/chat/dsa/test/server
+$ cd arcana/applet/arcana/dsa/test/server
 $ ../../bin/server_partition
 
 
 Open a new terminal
 
-$ cd chat/applet/chat/dsa/test/client1
+$ cd arcana/applet/arcana/dsa/test/client1
 $ ../../bin/client_partition tom
 
 
 Open a new terminal
 
-$ cd chat/applet/chat/dsa/test/client2
+$ cd arcana/applet/arcana/dsa/test/client2
 $ ../../bin/client_partition dick
 
 
-A 'q' as a chat message should quit a client.
+A 'q' as a arcana message should quit a client.
 An 'end' command will close the server.
 Ctrl-C to stop the po_cos_naming server.
 
@@ -117,7 +116,7 @@ Running a Client:
 
 Open a new terminal
 
-$ cd chat/applet/chat/dsa/test/client3
+$ cd arcana/applet/arcana/dsa/test/client3
 
 Edit polyorb.conf and set the name service to the value given by 'po_cos_naming' server output, similar to ...
 
@@ -139,7 +138,7 @@ Running a Server:
 
 Open a new terminal
 
-$ cd chat/applet/chat/dsa/test/po_cos_naming
+$ cd arcana/applet/arcana/dsa/test/po_cos_naming
 
 Make sure that the 'polyorb.protocols.iiop.default_port' value is open in any firewall and forwarded to the box running the po_cos_naming server.
 
@@ -148,7 +147,7 @@ $ po_cos_naming
 
 Open a new terminal
 
-$ cd chat/applet/chat/dsa/test/server
+$ cd arcana/applet/arcana/dsa/test/server
 
 Edit polyorb.conf and set the name service to the value given by 'po_cos_naming' server output, similar to ...
 

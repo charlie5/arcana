@@ -3,7 +3,7 @@ with
      "lace_shared";
 
 
-project Chat
+project Arcana
 is
    for Create_Missing_Dirs use "True";
 
@@ -11,11 +11,11 @@ is
    for Source_Dirs use ("source");
 
    package Dsa is
-      for Configuration_File use "chat.dsa";
+      for Configuration_File use "arcana.dsa";
    end Dsa;
 
    package Builder  renames Lace_shared.Builder;
    package Compiler renames Lace_shared.Compiler;
    package Binder   renames Lace_shared.Binder;
 
-end Chat;
+end Arcana;

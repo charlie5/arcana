@@ -1,5 +1,5 @@
 with
-     Chat.Client.local,
+     arcana.Client.local,
 
      lace.Event.utility,
 
@@ -9,9 +9,9 @@ with
      ada.Exceptions;
 
 
-procedure launch_chat_Client
+procedure launch_arcana_Client
 --
--- Starts a Chat client.
+-- Starts an Arcana client.
 --
 is
    use ada.Text_IO;
@@ -20,18 +20,19 @@ begin
    --
    if ada.command_Line.argument_Count /= 1
    then
-      put_Line ("Usage:   $ ./launch_chat_Client  <nickname>");
+      put_Line ("Usage:   $ ./launch_arcana_Client  <nickname>");
       return;
    end if;
 
    declare
-      use Chat.Client.local;
+      use arcana.Client.local;
 
-      client_Name : constant String           := ada.command_Line.Argument (1);
-      the_Client  : Chat.Client.local.item := to_Client (client_Name);
+      client_Name : constant String          := ada.command_Line.Argument (1);
+      the_Client  : arcana.Client.local.item := to_Client (client_Name);
    begin
       the_Client.start;
    end;
+
 
 exception
    when E : others =>
@@ -45,4 +46,4 @@ exception
       put (ada.Characters.latin_1.ESC & "[1A");   -- Move cursor up.
       put_Line ("________________________________________________________________________");
       new_Line;
-end launch_chat_Client;
+end launch_arcana_Client;

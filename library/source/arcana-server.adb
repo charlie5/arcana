@@ -8,7 +8,7 @@ with
      ada.Text_IO;
 
 
-package body Chat.Server
+package body arcana.Server
 is
    use ada.Strings.unbounded;
    use type Client.view;
@@ -25,7 +25,7 @@ is
       pragma Unreferenced (Msg, Line);
       use ada.Text_IO;
    begin
-      put_Line ("Unable to start the Chat server.");
+      put_Line ("Unable to start the Arcana server.");
       put_Line ("Please ensure the 'po_cos_naming' server is running.");
       put_Line ("Press Ctrl-C to quit.");
 
@@ -147,10 +147,10 @@ is
 
 
 
-   function all_Clients return Chat.Client.views
+   function all_Clients return arcana.Client.views
    is
       all_Info : constant client_Info_array := safe_Clients.all_client_Info;
-      Result   :          Chat.Client.views (all_Info'Range);
+      Result   :          arcana.Client.views (all_Info'Range);
    begin
       for i in Result'Range
       loop
@@ -209,7 +209,7 @@ is
             end loop;
 
             declare
-               all_Clients : constant Client.views := Chat.Server.all_Clients;
+               all_Clients : constant Client.views := arcana.Server.all_Clients;
             begin
                for Each of all_Clients
                loop
@@ -220,7 +220,7 @@ is
                         Each.deregister_Client ( Dead (i).as_Observer,
                                                 +Dead (i).Name);
                      exception
-                        when Chat.Client.unknown_Client =>
+                        when arcana.Client.unknown_Client =>
                            put_Line ("Deregister of " & (+Dead (i).Name) & " from " & Each.Name & " is not needed.");
                      end;
                   end loop;
@@ -241,7 +241,7 @@ is
 
    procedure shutdown
    is
-      all_Clients : constant Client.views := Chat.Server.all_Clients;
+      all_Clients : constant Client.views := arcana.Server.all_Clients;
    begin
       for Each of all_Clients
       loop
@@ -261,4 +261,4 @@ is
  procedure ping is null;
 
 
-end Chat.Server;
+end arcana.Server;

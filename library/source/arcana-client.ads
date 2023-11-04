@@ -4,9 +4,9 @@ with
      lace.Observer;
 
 
-package Chat.Client
+package arcana.Client
 --
--- Provides an interface to a Chat client.
+-- Provides an interface to a arcana client.
 --
 is
    pragma remote_Types;
@@ -42,4 +42,4 @@ is
    unknown_Client : exception;
 
 
-end Chat.Client;
+end arcana.Client;

@@ -8,14 +8,14 @@ with
      ada.Strings.unbounded;
 
 
-package Chat.Client.local
+package arcana.Client.local
 --
 -- Provides a local client.
 -- Names must be unique.
 --
 is
    type Item is limited new lace.Any.limited_item
-                        and Chat.Client  .item with private;
+                        and arcana.Client  .item with private;
 
    type View is access all Item'Class;
 
@@ -39,7 +39,7 @@ is
 
    -- Operations
    --
-   procedure start (Self : in out Chat.Client.local.item);
+   procedure start (Self : in out arcana.Client.local.item);
 
    overriding
    procedure   register_Client (Self : in out Item;   other_Client : in Client.view);
@@ -60,11 +60,11 @@ private
    use ada.Strings.unbounded;
 
    type Item is limited new Subject       .item
-                        and Chat.Client.item with
+                        and arcana.Client.item with
       record
             Name                : unbounded_String;
             Server_has_shutdown : Boolean := False;
             Server_is_dead      : Boolean := False;
       end record;
 
-end Chat.Client.local;
+end arcana.Client.local;

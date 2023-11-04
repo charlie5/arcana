@@ -1,4 +1,4 @@
-configuration Chat
+configuration Arcana
 is
 
    pragma Starter (none);
@@ -11,16 +11,16 @@ is
    --  Server
    --
 
-   server_Partition : partition := (chat.Server);
+   server_Partition : partition := (arcana.Server);
    --
    --  Declare the Server partition and assign the Servers 'remote call interface' package to this partition.
 
    for server_Partition'Termination use Local_Termination;
 
 
-   procedure launch_chat_Server is in server_Partition;
+   procedure launch_arcana_Server is in server_Partition;
    --
-   --  Tell po_gnatdist that the 'launch_chat_Server' procedure is the the Servers 'main' subprogram or launcher.
+   --  Tell po_gnatdist that the 'launch_arcana_Server' procedure is the the Servers 'main' subprogram or launcher.
 
 
    ----------
@@ -32,19 +32,19 @@ is
    --  Declare the Client partition (which has no remote call interface package associated with it, so no 'initialisation' is required).
 
 
-   procedure launch_chat_Client;
+   procedure launch_arcana_Client;
    --
    --  Declare the Clients 'main' subprogram or launcher.
 
 
-   for client_Partition'Main use launch_chat_Client;
+   for client_Partition'Main use launch_arcana_Client;
    --
-   --  Tell po_gnatdist to assign the above declared 'launch_chat_Client' procedure as the Clients 'main' subprogram or launcher.
+   --  Tell po_gnatdist to assign the above declared 'launch_arcana_Client' procedure as the Clients 'main' subprogram or launcher.
 
 
    for client_Partition'Termination use Local_Termination;
    --
-   --  Tell po_Gnatdist that Clients may terminate locally.
+   --  Tell po_gnatdist that Clients may terminate locally.
 
 
    -----------
@@ -65,4 +65,4 @@ is
    --
    --  Ask po_gnatdist to place the built Client and Server partition executables in the './bin' sub-folder.
 
-end Chat;
+end Arcana;

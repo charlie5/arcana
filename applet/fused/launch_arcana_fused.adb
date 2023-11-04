@@ -1,13 +1,13 @@
 with
-     launch_chat_Server,
-     launch_chat_Client,
+     launch_arcana_Server,
+     launch_arcana_Client,
 
      ada.Characters.latin_1,
      ada.Text_IO,
      ada.Exceptions;
 
 
-procedure launch_Chat_fused
+procedure launch_Arcana_fused
 --
 -- Starts the fused testbed.
 --
@@ -33,7 +33,7 @@ is
    is
    begin
       accept start;
-      launch_chat_Server;
+      launch_arcana_Server;
 
    exception
       when E : others =>
@@ -53,7 +53,7 @@ is
    is
    begin
       accept start;
-      launch_chat_Client;
+      launch_arcana_Client;
 
    exception
       when E : others =>
@@ -75,11 +75,11 @@ begin
 exception
    when E : others =>
       new_Line;
-      put_Line ("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-      put_Line ("launch_Chat_fused ~ Unhandled exception, aborting. Please report the following to developer.");
-      put_Line ("_______________________________________________________________________________________________");
+      put_Line ("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+      put_Line ("launch_Arcana_fused ~ Unhandled exception, aborting. Please report the following to developer.");
+      put_Line ("______________________________________________________________________________________________");
       put_Line (ada.Exceptions.exception_Information (E));
       put (ada.Characters.latin_1.ESC & "[1A");   -- Move cursor up.
-      put_Line ("________________________________________________________________________________________________");
+      put_Line ("______________________________________________________________________________________________");
       new_Line;
-end launch_Chat_fused;
+end launch_Arcana_fused;

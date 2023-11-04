@@ -1,10 +1,10 @@
 with
-     Chat.Client;
+     arcana.Client;
 
-package Chat.Server
+package arcana.Server
 --
--- A singleton providing the central chat server.
--- Limited to a maximum of 5_000 chat clients running at once.
+-- A singleton providing the central arcana server.
+-- Limited to a maximum of 5_000 arcana clients running at once.
 --
 is
    pragma remote_Call_interface;
@@ -14,9 +14,9 @@ is
    procedure   register (the_Client : in Client.view);
    procedure deregister (the_Client : in Client.view);
 
-   function  all_Clients return Chat.Client.views;
+   function  all_Clients return arcana.Client.views;
 
    procedure ping;
    procedure shutdown;
 
-end Chat.Server;
+end arcana.Server;

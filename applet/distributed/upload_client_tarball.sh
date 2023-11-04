@@ -4,4 +4,4 @@ set -e
 
 rsync -av                \
    client_tarball.tar.gz \
-   www.orthanc.site:~/orthanc/applet/server/assets/chat/
+   www.orthanc.site:~/orthanc/applet/server/assets/arcana/

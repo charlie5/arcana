@@ -1,22 +1,20 @@
 with
-     "../../library/chat",
+     "../../library/arcana",
      "lace",
      "lace_shared";
 
 
-project launch_Chat
+project launch_Arcana
 is
    for Create_Missing_Dirs use "True";
 
    for Object_Dir  use "build";
    for Exec_Dir    use ".";
---   for Main        use ("launch_chat_client.adb",
---                        "launch_chat_server.adb");
    for Source_Dirs use ("../source",
                         "./source");
 
    package Dsa is
-      for Configuration_File use "chat.dsa";
+      for Configuration_File use "arcana.dsa";
    end Dsa;
 
    package Builder  renames Lace_shared.Builder;
@@ -24,8 +22,8 @@ is
    package Binder   renames Lace_shared.Binder;
 
    package Linker is
-      for Default_Switches ("ada") use ("-g",
-                                        "-static");
+      for Default_Switches ("ada") use ("-g");
+--                                        "-static");
    end Linker;
 
-end launch_Chat;
+end launch_Arcana;
