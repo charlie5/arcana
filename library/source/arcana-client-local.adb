@@ -41,6 +41,7 @@ is
    is
       pragma Unreferenced (Self);
       use ada.Text_IO;
+
       the_Message : constant Message := Message (to_Event);
    begin
       put_Line (the_Message.Text (1 .. the_Message.Length));
@@ -61,7 +62,7 @@ is
       use gel.Keyboard;
 
       the_Event :          gel.Keyboard.key_press_Event renames gel.Keyboard.key_press_Event (to_Event);
-      the_Key   : constant gel.keyboard.Key := the_Event.modified_Key.Key;
+      the_Key   : constant gel.keyboard.Key                  := the_Event.modified_Key.Key;
    begin
       case the_Key
       is
@@ -84,7 +85,7 @@ is
       use gel.Keyboard;
 
       the_Event :          gel.Keyboard.key_release_Event renames gel.Keyboard.key_release_Event (to_Event);
-      the_Key   : constant gel.keyboard.Key := the_Event.modified_Key.Key;
+      the_Key   : constant gel.keyboard.Key                    := the_Event.modified_Key.Key;
    begin
       case the_Key
       is
@@ -134,13 +135,13 @@ is
                               Fill    => False,
                               Padding => 10);
 
-         Self.Name       := to_unbounded_String (Name);
-         Self.the_Applet := gel.Forge.new_gui_Applet (Named         => "Arcana",
-                                                      window_Width  => 800,
-                                                      window_Height => 650,
-                                                      space_Kind    => physics.Box2d);
+         Self.Name   := to_unbounded_String (Name);
+         Self.Applet := gel.Forge.new_gui_Applet (Named         => "Arcana",
+                                                  window_Width  => 800,
+                                                  window_Height => 650,
+                                                  space_Kind    => physics.Box2d);
 
-         Self.Box.pack_Start (gel.Window.gtk.view (Self.the_Applet.Window).GL_Area);
+         Self.Box.pack_Start (gel.Window.gtk.view (Self.Applet.Window).GL_Area);
 
          --  Show the window.
          --
@@ -149,40 +150,40 @@ is
 
          -- Connect events.
          --
-         connect ( Self.the_Applet.local_Observer,
-                   Self.the_Applet.Keyboard,
-                   Self.the_key_press_Response'unchecked_Access,
+         connect ( Self.Applet.local_Observer,
+                   Self.Applet.Keyboard,
+                   Self.my_key_press_Response'unchecked_Access,
                   +gel.Keyboard.key_press_Event'Tag);
 
-         connect ( Self.the_Applet.local_Observer,
-                   Self.the_Applet.Keyboard,
-                   Self.the_key_release_Response'unchecked_Access,
+         connect ( Self.Applet.local_Observer,
+                   Self.Applet.Keyboard,
+                   Self.my_key_release_Response'unchecked_Access,
                   +gel.Keyboard.key_release_Event'Tag);
 
 
          -- Ball
          --
-         Self.the_Ball := gel.Forge.new_circle_Sprite (in_World => Self.the_Applet.World,
-                                                       Site     => [0.0, 0.0],
-                                                       Mass     => 1.0,
-                                                       Bounce   => 1.0,
-                                                       Friction => 0.0,
-                                                       Radius   => 0.5,
-                                                       Color    => Grey,
-                                                       Texture  => openGL.to_Asset ("assets/opengl/texture/Face1.bmp"));
+         Self.Player := gel.Forge.new_circle_Sprite (in_World => Self.Applet.World,
+                                                     Site     => [0.0, 0.0],
+                                                     Mass     => 1.0,
+                                                     Bounce   => 1.0,
+                                                     Friction => 0.0,
+                                                     Radius   => 0.5,
+                                                     Color    => Grey,
+                                                     Texture  => openGL.to_Asset ("assets/opengl/texture/Face1.bmp"));
 
-         Self.the_Applet.Camera.  Site_is ([0.0, 0.0, 20.0]);
-         Self.the_Applet.World.Gravity_is ([0.0, 0.0,  0.0]);
-         Self.the_Applet.World.add        (Self.the_Ball);
+         Self.Applet.Camera.  Site_is ([0.0, 0.0, 20.0]);
+         Self.Applet.World.Gravity_is ([0.0, 0.0,  0.0]);
+         Self.Applet.World.add        (Self.Player);
 
 
          -- Set the lights position.
          --
          declare
-            Light : openGL.Light.item := Self.the_Applet.Renderer.new_Light;
+            Light : openGL.Light.item := Self.Applet.Renderer.new_Light;
          begin
             Light.Site_is ([0.0, -1000.0, 0.0]);
-            Self.the_Applet.Renderer.set (Light);
+            Self.Applet.Renderer.set (Light);
          end;
       end return;
    end to_Client;
@@ -234,6 +235,7 @@ is
                                   to_Subject    => other_Client.as_Subject,
                                   with_Response => the_Response'Access,
                                   to_Event_Kind => to_Kind (arcana.Client.Message'Tag));
+
       put_Line (other_Client.Name & " is here.");
    end register_Client;
 
@@ -269,6 +271,7 @@ is
       use ada.Text_IO;
    begin
       put_Line ("The Server has shutdown. Press <Enter> to exit.");
+
       Self.Server_has_shutdown := True;
    end Server_has_shutdown;
 
@@ -279,6 +282,7 @@ is
       entry start (Self : in arcana.Client.local.view);
       entry halt;
    end check_Server_lives;
+
 
    task body check_Server_lives
    is
@@ -366,17 +370,17 @@ is
       ------------
       -- Main Loop
       --
-      while Self.the_Applet.is_open
+      while Self.Applet.is_open
       loop
-         Self.the_Applet.World.evolve;     -- Advance the world.
-         Self.the_Applet.freshen;          -- Handle any new events and update the screen.
+         Self.Applet.World.evolve;     -- Advance the world.
+         Self.Applet.freshen;          -- Handle any new events and update the screen.
 
 
          declare
             procedure broadcast (the_Text : in String)
             is
                the_Message : constant arcana.Client.Message := (Length (Self.Name) + 2 + the_Text'Length,
-                                                              +Self.Name & ": " & the_Text);
+                                                               +Self.Name & ": " & the_Text);
             begin
                Self.emit (the_Message);
             end broadcast;
@@ -386,7 +390,7 @@ is
             exit
               when   Self.Server_has_shutdown
               or     Self.Server_is_dead
-              or not Self.the_Applet.is_open;
+              or not Self.Applet.is_open;
 
             --  broadcast (chat_Message);
          end;
@@ -430,7 +434,7 @@ is
       end if;
 
       check_Server_lives.halt;
-      free (Self.the_Applet);
+      free (Self.Applet);
       lace.Event.utility.close;
    end start;
 

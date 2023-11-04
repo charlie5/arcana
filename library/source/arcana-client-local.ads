@@ -105,11 +105,13 @@ private
 
          -- Gel objects.
          --
-         the_Applet : gel.Applet.gui_world.view;
-         the_Ball   : gel.Sprite.view;
+         Applet : gel.Applet.gui_world.view;
+         Player : gel.Sprite.view;
 
-         the_key_press_Response   : aliased key_press_Response;
-         the_key_release_Response : aliased key_release_Response;
+         -- Gel Events.
+         --
+         my_key_press_Response   : aliased key_press_Response;
+         my_key_release_Response : aliased key_release_Response;
       end record;
 
 
