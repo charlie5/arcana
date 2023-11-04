@@ -8,11 +8,11 @@ with
      lace.Response,
 
      gel.Applet.gui_world,
+     gel.Sprite,
 
      gtk.Box,
      gtk.Label,
      gtk.Window,
-     gtk.glArea,
 
      ada.Strings.unbounded;
 
@@ -106,6 +106,7 @@ private
          -- Gel objects.
          --
          the_Applet : gel.Applet.gui_world.view;
+         the_Ball   : gel.Sprite.view;
 
          the_key_press_Response   : aliased key_press_Response;
          the_key_release_Response : aliased key_release_Response;

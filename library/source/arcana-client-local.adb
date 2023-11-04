@@ -1,7 +1,6 @@
 with
      arcana.Server,
 
-     lace.Response,
      lace.Observer,
      lace.Event.utility,
 
@@ -11,6 +10,9 @@ with
      gel.Keyboard,
 
      Physics,
+
+     openGL.Palette,
+     openGL.Light,
 
      gtk.Main,
 
@@ -103,7 +105,8 @@ is
 
    function to_Client (Name : in String) return Item
    is
-      use lace.Event.utility;
+      use openGL.Palette,
+          lace.Event.utility;
    begin
       gtk.Main.init;     -- Initialize GtkAda.
 
@@ -155,6 +158,32 @@ is
                    Self.the_Applet.Keyboard,
                    Self.the_key_release_Response'unchecked_Access,
                   +gel.Keyboard.key_release_Event'Tag);
+
+
+         -- Ball
+         --
+         Self.the_Ball := gel.Forge.new_circle_Sprite (in_World => Self.the_Applet.World,
+                                                       Site     => [0.0, 0.0],
+                                                       Mass     => 1.0,
+                                                       Bounce   => 1.0,
+                                                       Friction => 0.0,
+                                                       Radius   => 0.5,
+                                                       Color    => Grey,
+                                                       Texture  => openGL.to_Asset ("assets/opengl/texture/Face1.bmp"));
+
+         Self.the_Applet.Camera.  Site_is ([0.0, 0.0, 20.0]);
+         Self.the_Applet.World.Gravity_is ([0.0, 0.0,  0.0]);
+         Self.the_Applet.World.add        (Self.the_Ball);
+
+
+         -- Set the lights position.
+         --
+         declare
+            Light : openGL.Light.item := Self.the_Applet.Renderer.new_Light;
+         begin
+            Light.Site_is ([0.0, -1000.0, 0.0]);
+            Self.the_Applet.Renderer.set (Light);
+         end;
       end return;
    end to_Client;
 
