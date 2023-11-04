@@ -1,4 +1,5 @@
 with
+     "gel_gtk",
      "lace",
      "lace_shared";
 

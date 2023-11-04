@@ -5,9 +5,20 @@ with
      lace.Observer,
      lace.Event.utility,
 
+     gel.Forge,
+     gel.Window.setup,
+     gel.Window.gtk,
+     gel.Keyboard,
+
+     Physics,
+
+     gtk.Main,
+
      system.RPC,
      ada.Exceptions,
      ada.Text_IO;
+
+pragma Unreferenced (gel.Window.setup);
 
 
 package body arcana.Client.local
@@ -37,21 +48,122 @@ is
 
 
 
+   --------------
+   --- Gel Events
+   --
+
+   overriding
+   procedure respond (Self : in out key_press_Response;   to_Event : in lace.Event.item'Class)
+   is
+      pragma Unreferenced (Self);
+      use gel.Keyboard;
+
+      the_Event :          gel.Keyboard.key_press_Event renames gel.Keyboard.key_press_Event (to_Event);
+      the_Key   : constant gel.keyboard.Key := the_Event.modified_Key.Key;
+   begin
+      case the_Key
+      is
+         when up     => null; -- the_Players (2).moving_Up   := True;
+         when down   => null; -- the_Players (2).moving_Down := True;
+         when a      => null; -- the_Players (1).moving_Up   := True;
+         when z      => null; -- the_Players (1).moving_Down := True;
+
+         when SPACE  => null; -- relaunch_Ball := True;
+         when others => null;
+      end case;
+   end respond;
+
+
+
+   overriding
+   procedure respond (Self : in out key_release_Response;   to_Event : in lace.Event.item'Class)
+   is
+      pragma Unreferenced (Self);
+      use gel.Keyboard;
+
+      the_Event :          gel.Keyboard.key_release_Event renames gel.Keyboard.key_release_Event (to_Event);
+      the_Key   : constant gel.keyboard.Key := the_Event.modified_Key.Key;
+   begin
+      case the_Key
+      is
+         when up   =>   null; -- the_Players (2).moving_Up   := False;
+         when down =>   null; -- the_Players (2).moving_Down := False;
+         when a    =>   null; -- the_Players (1).moving_Up   := False;
+         when z    =>   null; -- the_Players (1).moving_Down := False;
+         when others => null;
+      end case;
+   end respond;
+
+
+
+
+   --------
    -- Forge
    --
+
    function to_Client (Name : in String) return Item
    is
+      use lace.Event.utility;
    begin
+      gtk.Main.init;     -- Initialize GtkAda.
+
+
       return Self : Item
       do
-         Self.Name := to_unbounded_String (Name);
+         --- Setup GtkAda.
+         --
+
+         --  Create a window with a size of 800 x 650.
+         --
+         gtk_new (Self.top_Window);
+         Self.top_Window.set_default_Size (800, 650);
+
+         --  Create a box to organize vertically the contents of the window.
+         --
+         gtk_New_vBox        (Self.Box);
+         Self.top_Window.add (Self.Box);
+
+         --  Add a label.
+         --
+         gtk_new             (Self.Label, "Hello Arcana.");
+         Self.Box.pack_Start (Self.Label,
+                              Expand  => False,
+                              Fill    => False,
+                              Padding => 10);
+
+         Self.Name       := to_unbounded_String (Name);
+         Self.the_Applet := gel.Forge.new_gui_Applet (Named         => "Arcana",
+                                                      window_Width  => 800,
+                                                      window_Height => 650,
+                                                      space_Kind    => physics.Box2d);
+
+         Self.Box.pack_Start (gel.Window.gtk.view (Self.the_Applet.Window).GL_Area);
+
+         --  Show the window.
+         --
+         Self.top_Window.show_All;
+
+
+         -- Connect events.
+         --
+         connect ( Self.the_Applet.local_Observer,
+                   Self.the_Applet.Keyboard,
+                   Self.the_key_press_Response'unchecked_Access,
+                  +gel.Keyboard.key_press_Event'Tag);
+
+         connect ( Self.the_Applet.local_Observer,
+                   Self.the_Applet.Keyboard,
+                   Self.the_key_release_Response'unchecked_Access,
+                  +gel.Keyboard.key_release_Event'Tag);
       end return;
    end to_Client;
 
 
 
+   -------------
    -- Attributes
    --
+
    overriding
    function Name (Self : in Item) return String
    is
@@ -79,6 +191,7 @@ is
 
 
 
+   -------------
    -- Operations
    --
 
@@ -182,8 +295,10 @@ is
 
    procedure start (Self : in out arcana.Client.local.item)
    is
-      use ada.Text_IO;
+      use gel.Applet.gui_world,
+          ada.Text_IO;
    begin
+      --------
       -- Setup
       --
       begin
@@ -218,9 +333,16 @@ is
          end loop;
       end;
 
-      -- Main loop
+
+      ------------
+      -- Main Loop
       --
+      while Self.the_Applet.is_open
       loop
+         Self.the_Applet.World.evolve;     -- Advance the world.
+         Self.the_Applet.freshen;          -- Handle any new events and update the screen.
+
+
          declare
             procedure broadcast (the_Text : in String)
             is
@@ -230,17 +352,19 @@ is
                Self.emit (the_Message);
             end broadcast;
 
-            chat_Message : constant String := get_Line;
+            chat_Message : constant String := ""; -- get_Line;
          begin
             exit
-              when chat_Message = "q"
-              or   Self.Server_has_shutdown
-              or   Self.Server_is_dead;
+              when   Self.Server_has_shutdown
+              or     Self.Server_is_dead
+              or not Self.the_Applet.is_open;
 
-            broadcast (chat_Message);
+            --  broadcast (chat_Message);
          end;
       end loop;
 
+
+      -----------
       -- Shutdown
       --
       if    not Self.Server_has_shutdown
@@ -277,6 +401,7 @@ is
       end if;
 
       check_Server_lives.halt;
+      free (Self.the_Applet);
       lace.Event.utility.close;
    end start;
 

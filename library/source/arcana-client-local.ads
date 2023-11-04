@@ -5,6 +5,15 @@ private
 with
      lace.make_Subject,
      lace.make_Observer,
+     lace.Response,
+
+     gel.Applet.gui_world,
+
+     gtk.Box,
+     gtk.Label,
+     gtk.Window,
+     gtk.glArea,
+
      ada.Strings.unbounded;
 
 
@@ -57,14 +66,50 @@ private
    package Observer is new lace.make_Observer (lace.Any.limited_item);
    package Subject  is new lace.make_Subject  (Observer        .item);
 
-   use ada.Strings.unbounded;
+
+   --------------
+   --- Gel Events
+   --
+   type   key_press_Response is new lace.Response.item with null record;
+   type key_release_Response is new lace.Response.item with null record;
+
+   overriding
+   procedure respond (Self : in out   key_press_Response;   to_Event : in lace.Event.item'Class);
+   overriding
+   procedure respond (Self : in out key_release_Response;   to_Event : in lace.Event.item'Class);
+
+
+   use gtk.Box,
+       gtk.Label,
+       gtk.Window,
+
+       ada.Strings.unbounded;
+
+
+   --------
+   --- Item
+   --
 
    type Item is limited new Subject       .item
                         and arcana.Client.item with
       record
-            Name                : unbounded_String;
-            Server_has_shutdown : Boolean := False;
-            Server_is_dead      : Boolean := False;
+         Name                : unbounded_String;
+         Server_has_shutdown : Boolean := False;
+         Server_is_dead      : Boolean := False;
+
+         -- GtkAda objects.
+         --
+         top_Window : Gtk_Window;
+         Label      : Gtk_Label;
+         Box        : Gtk_Vbox;
+
+         -- Gel objects.
+         --
+         the_Applet : gel.Applet.gui_world.view;
+
+         the_key_press_Response   : aliased key_press_Response;
+         the_key_release_Response : aliased key_release_Response;
       end record;
+
 
 end arcana.Client.local;
