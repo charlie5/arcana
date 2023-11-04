@@ -1,5 +1,26 @@
-# Object file
-*.o
-
-# Ada Library Information
+*.json
+*.stderr
+*.stdout
+*.log
+*-loc.xml
 *.ali
+*.o
+*.bexch
+*.cgpr
+
+b__*
+
+
+applet/dsa/dsa
+applet/dsa/bin
+
+launch_amud_server
+launch_amud_client
+launch_amud_fused
+
+applet/distributed/bin
+applet/distributed/dsa
+
+.clang-format
+
+launch_chat_fused

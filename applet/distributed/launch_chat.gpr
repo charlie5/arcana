@@ -1,0 +1,31 @@
+with
+     "../../library/chat",
+     "lace",
+     "lace_shared";
+
+
+project launch_Chat
+is
+   for Create_Missing_Dirs use "True";
+
+   for Object_Dir  use "build";
+   for Exec_Dir    use ".";
+--   for Main        use ("launch_chat_client.adb",
+--                        "launch_chat_server.adb");
+   for Source_Dirs use ("../source",
+                        "./source");
+
+   package Dsa is
+      for Configuration_File use "chat.dsa";
+   end Dsa;
+
+   package Builder  renames Lace_shared.Builder;
+   package Compiler renames Lace_shared.Compiler;
+   package Binder   renames Lace_shared.Binder;
+
+   package Linker is
+      for Default_Switches ("ada") use ("-g",
+                                        "-static");
+   end Linker;
+
+end launch_Chat;
