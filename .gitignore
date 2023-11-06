@@ -5,9 +5,11 @@
 *-loc.xml
 *.ali
 *.o
+*.a
+*.deps
 *.bexch
 *.cgpr
-
+.clangd
 b__*
 
 
