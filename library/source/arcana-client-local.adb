@@ -460,8 +460,7 @@ is
          if Self.pc_Sprite /= null
          then
             null;
-            log (Self.pc_Sprite.Site'Image);
-            Self.Applet.Camera.Site_is (Self.pc_Sprite.Site + (0.0, 0.0, 30.0));
+            --  Self.Applet.Camera.Site_is (Self.pc_Sprite.Site + (0.0, 0.0, 30.0));
          end if;
 
 
