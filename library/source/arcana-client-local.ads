@@ -7,7 +7,8 @@ with
      lace.make_Observer,
      lace.Response,
 
-     gel.Applet.gui_world,
+     gel.Applet.client_world,
+     gel.World .client,
      gel.Sprite,
 
      gtk.Box,
@@ -61,6 +62,11 @@ is
 
 
 
+   overriding
+   procedure pc_sprite_Id_is (Self : in out Item;   Now : in gel.sprite_Id);
+
+
+
 private
 
    package Observer is new lace.make_Observer (lace.Any.limited_item);
@@ -70,8 +76,8 @@ private
    --------------
    --- Gel Events
    --
-   type   key_press_Response is new lace.Response.item with null record;
-   type key_release_Response is new lace.Response.item with null record;
+   type   key_press_Response (my_Client : access arcana.Client.local.item) is new lace.Response.item with null record;
+   type key_release_Response (my_Client : access arcana.Client.local.item) is new lace.Response.item with null record;
 
    overriding
    procedure respond (Self : in out   key_press_Response;   to_Event : in lace.Event.item'Class);
@@ -105,14 +111,20 @@ private
 
          -- Gel objects.
          --
-         Applet : gel.Applet.gui_world.view;
-         Player : gel.Sprite.view;
+         pc_sprite_Id : gel.sprite_Id  := gel.null_sprite_Id;
+         pc_Sprite    : gel.Sprite.view;
+
+         Applet       : gel.Applet.client_world.view;
+         --  Player : gel.Sprite.view;
 
          -- Gel Events.
          --
-         my_key_press_Response   : aliased key_press_Response;
-         my_key_release_Response : aliased key_release_Response;
+         my_key_press_Response   : aliased   key_press_Response (Item'Access);
+         my_key_release_Response : aliased key_release_Response (Item'Access);
       end record;
+
+
+   function client_World (Self : in Item) return gel.World.client.view;
 
 
 end arcana.Client.local;

@@ -1,4 +1,5 @@
 with
+     Gel,
      lace.Event,
      lace.Subject,
      lace.Observer;
@@ -40,6 +41,10 @@ is
       end record;
 
    unknown_Client : exception;
+
+
+
+   procedure pc_sprite_Id_is (Self : in out Item;   Now : in gel.sprite_Id) is abstract;
 
 
 end arcana.Client;

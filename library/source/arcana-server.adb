@@ -1,17 +1,48 @@
 with
+     gel.World.server,
+     gel.Sprite,
+     gel.Forge,
+     gel.Events,
+
+     openGL.Palette,
+     Physics,
+
      lace.Observer,
+     lace.Response,
+     lace.Event.utility,
 
      system.RPC,
 
      ada.Exceptions,
      ada.Strings.unbounded,
+     ada.Containers.hashed_Maps,
      ada.Text_IO;
 
 
 package body arcana.Server
 is
-   use ada.Strings.unbounded;
+   use gel.World.server,
+       ada.Strings.unbounded;
    use type Client.view;
+
+
+   procedure log (Message : in String := "")
+                  renames ada.Text_IO.put_Line;
+
+
+   the_World : aliased gel.World.server.item := forge.to_World (Name       => "arcana.Server",
+                                                                Id         => 1,
+                                                                space_Kind => physics.Box2D,
+                                                                Renderer   => null);
+   function World return gel.remote.World.view
+   is
+   begin
+      return the_World'Access;
+   end World;
+
+
+
+
 
    procedure last_chance_Handler (Msg  : in system.Address;
                                   Line : in Integer);
@@ -117,14 +148,97 @@ is
 
 
 
+
+
+   ------------------------
+   --- sprite_Maps_of_speed
+   --
+
+   function Hash (Id : in gel.sprite_Id) return ada.Containers.Hash_type
+   is
+   begin
+      return ada.Containers.Hash_type (Id);
+   end Hash;
+
+
+   use type gel.sprite_Id,
+            gel.Math.Vector_3;
+
+   package sprite_Maps_of_speed is new ada.Containers.hashed_Maps (gel.sprite_Id,
+                                                                   gel.Math.Vector_3,
+                                                                   Hash,
+                                                                   equivalent_Keys => "=");
+   the_sprite_Map_of_Speed : sprite_Maps_of_speed.Map;
+
+
+
+   --------------------
+   --- pc_move_Response
+   --
+
+   type pc_move_Response is new lace.Response.item with
+      record
+         null;
+      end record;
+
+
+   overriding
+   procedure respond (Self : in out pc_move_Response;   to_Event : in lace.Event.item'Class)
+   is
+      the_Event  : constant pc_move_Event        := pc_move_Event (to_Event);
+      the_Sprite :          gel.Sprite.view renames the_World.fetch_Sprite (the_Event.sprite_Id);
+      Speed      :          gel.Math.Vector_3    := [0.0, 0.0, 0.0];
+   begin
+      log ("Server: pc_move_Response");
+      log ("Server: sprite ID is" & the_Event.sprite_Id'Image);
+
+      if the_sprite_Map_of_speed.contains (the_Sprite.Id)
+      then
+         Speed := the_sprite_Map_of_speed (the_Sprite.Id);
+      else
+         the_sprite_Map_of_speed.insert (the_Sprite.Id, Speed);
+      end if;
+
+
+      if the_Event.On
+      then
+         case the_Event.Direction
+         is
+            when Forward  => Speed := Speed + [ 0.0,  0.1, 0.0];
+            when Backward => Speed := Speed + [ 0.0, -0.1, 0.0];
+            when Left     => Speed := Speed + [-0.1,  0.0, 0.0];
+            when Right    => Speed := Speed + [ 0.1,  0.0, 0.0];
+         end case;
+      else
+         case the_Event.Direction
+         is
+            when Forward  => Speed := Speed + [ 0.0, -0.1, 0.0];
+            when Backward => Speed := Speed + [ 0.0,  0.1, 0.0];
+            when Left     => Speed := Speed + [ 0.1,  0.0, 0.0];
+            when Right    => Speed := Speed + [-0.1,  0.0, 0.0];
+         end case;
+      end if;
+
+      the_Sprite.Speed_is (Speed);
+      the_sprite_Map_of_Speed.replace (the_Sprite.Id, Speed);
+   end respond;
+
+
+   the_pc_move_Response : aliased pc_move_Response;
+
+
+
+
+   -----------------------
+   --- Client Registration
+   --
+
    procedure register (the_Client : in Client.view)
    is
-      use ada.Text_IO;
-
       Name     : constant String            := the_Client.Name;
       all_Info : constant client_Info_array := safe_Clients.all_client_Info;
    begin
-      put_Line ("Registering '" & Name & "'.");
+      log ("Registering '" & Name & "'.");
 
       for Each of all_Info
       loop
@@ -135,6 +249,60 @@ is
       end loop;
 
       safe_Clients.add (the_Client);
+
+
+      -- The Player.
+      --
+      declare
+         the_Player : gel.Sprite.view := gel.Forge.new_rectangle_Sprite (in_World => the_World'Access,
+                                                                         Site     => [-0.0, 0.0],
+                                                                         Mass     => 1.0,
+                                                                         Bounce   => 1.0,
+                                                                         Friction => 1.0,
+                                                                         Width    => 1.0,
+                                                                         Height   => 1.0,
+                                                                         Color    => openGL.Palette.Grey,
+                                                                         Texture  => openGL.to_Asset ("assets/human.png"));
+
+         --  the_Event : gel.Events.new_sprite_added_to_world_Event := (sprite_id => the_Player.Id,
+         --                                                             world_id  => the_World.Id);
+
+         --  the_Event_2 : gel.events.my_new_sprite_added_to_world_Event
+         --    := (Pair => (sprite_id         => the_Player.Id,
+         --                 graphics_model_Id => the_Player.Visual.Model.Id,
+         --                 physics_model_id  => the_Player.physics_Model.Id,
+         --                 mass              => the_Player.Mass,
+         --                 transform         => the_Player.Transform,
+         --                 is_visible        => the_Player.is_Visible));
+      begin
+         log ("arcana.Server.register ~ the_Player.Visual.Model.Id:" & the_Player.Visual.Model.Id'Image);
+
+         the_World.add (the_Player);
+
+         -- Emit a new sprite added event for any interested observers.
+         --
+         --  the_World.emit (the_Event);
+         declare
+            the_Event_2 : gel.events.my_new_sprite_added_to_world_Event
+              := (Pair => (sprite_id         => the_Player.Id,
+                           graphics_model_Id => the_Player.Visual.Model.Id,
+                           physics_model_id  => the_Player.physics_Model.Id,
+                           mass              => the_Player.Mass,
+                           transform         => the_Player.Transform,
+                           is_visible        => the_Player.is_Visible));
+         begin
+            the_World.emit (the_Event_2);
+         end;
+
+         the_Client.pc_sprite_Id_is (the_Player.Id);
+
+      end;
+
+
+      lace.Event.utility.connect (the_Observer  => the_World.local_Observer,
+                                  to_Subject    => the_Client.as_Subject,
+                                  with_Response => the_pc_move_Response'Access,
+                                  to_Event_Kind => lace.Event.utility.to_Kind (pc_move_Event'Tag));
    end register;
 
 
@@ -239,6 +407,71 @@ is
 
 
 
+   use openGL.Palette;
+
+   the_Player   : gel.Sprite.view;
+   the_Player_2 : gel.Sprite.view;
+   the_one_Tree : gel.Sprite.view;
+
+
+   procedure start
+   is
+      use ada.Text_IO;
+   begin
+      Put_Line ("Server world " & the_World'address'Image);
+      the_World.Gravity_is ([0.0, -0.00, 0.0]);
+
+      -- The One Tree.
+      --
+      the_one_Tree := gel.Forge.new_rectangle_Sprite (in_World => the_World'Access,
+                                                      Site     => [0.0, 0.0],
+                                                      Mass     => 0.0,
+                                                      Bounce   => 1.0,
+                                                      Friction => 1.0,
+                                                      Width    => 1.0,
+                                                      Height   => 1.0,
+                                                      Color    => Green,
+                                                      Texture  => openGL.to_Asset ("assets/tree7.png"));
+
+      --  -- The Player.
+      --  --
+      --  the_Player := gel.Forge.new_rectangle_Sprite (in_World => the_World'Access,
+      --                                                Site     => [-0.0, 0.0],
+      --                                                Mass     => 1.0,
+      --                                                Bounce   => 1.0,
+      --                                                Friction => 1.0,
+      --                                                Width    => 1.0,
+      --                                                Height   => 1.0,
+      --                                                Color    => Grey,
+      --                                                Texture  => openGL.to_Asset ("assets/human.png"));
+
+      --  the_Player_2 := gel.Forge.new_circle_Sprite (in_World => the_World'Access,
+      --                                               Site     => [2.0, 0.0],
+      --                                               Mass     => 1.0,
+      --                                               Bounce   => 1.0,
+      --                                               Friction => 0.0,
+      --                                               Radius   => 0.5,
+      --                                               Color    => Red,
+      --                                               Texture  => openGL.to_Asset ("assets/opengl/texture/Face1.bmp"));
+
+      the_World.add (the_one_Tree);
+      --  the_World.add (the_Player);
+      --  the_World.add (the_Player_2);
+
+      --  the_Player.apply_Force ([5.0, 0.0, 0.0]);
+
+
+
+
+      --  while the_World.is_open
+      loop
+         --  the_World.Gravity_is ([0.0, -0.1, 0.0]);
+         the_World.evolve;     -- Advance the world.
+      end loop;
+   end start;
+
+
+
    procedure shutdown
    is
       all_Clients : constant Client.views := arcana.Server.all_Clients;
@@ -258,7 +491,7 @@ is
 
 
 
- procedure ping is null;
+   procedure ping is null;
 
 
 end arcana.Server;

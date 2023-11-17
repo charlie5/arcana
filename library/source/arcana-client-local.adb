@@ -8,6 +8,7 @@ with
      gel.Window.setup,
      gel.Window.gtk,
      gel.Keyboard,
+     gel.World.client,
 
      Physics,
 
@@ -17,6 +18,7 @@ with
      gtk.Main,
 
      system.RPC,
+     --  ada.Tags,
      ada.Exceptions,
      ada.Text_IO;
 
@@ -25,13 +27,22 @@ pragma Unreferenced (gel.Window.setup);
 
 package body arcana.Client.local
 is
+   ----------
    -- Utility
    --
+
    function "+" (From : in unbounded_String) return String
                  renames to_String;
 
-   -- Responses
+
+   procedure log (Message : in String := "")
+                  renames ada.Text_IO.put_Line;
+
+
+   --------------
+   --- Gel Events
    --
+
    type Show is new lace.Response.item with null record;
 
    -- Response is to display the arcana message on the users console.
@@ -51,29 +62,52 @@ is
 
 
 
-   --------------
-   --- Gel Events
+
+   --- Guards against key repeats.
    --
+      up_Key_is_already_pressed,
+    down_Key_is_already_pressed,
+    left_Key_is_already_pressed,
+   right_Key_is_already_pressed : Boolean := False;
+
 
    overriding
    procedure respond (Self : in out key_press_Response;   to_Event : in lace.Event.item'Class)
    is
-      pragma Unreferenced (Self);
-      use gel.Keyboard;
+      use arcana.Server,
+          gel.Keyboard;
 
       the_Event :          gel.Keyboard.key_press_Event renames gel.Keyboard.key_press_Event (to_Event);
       the_Key   : constant gel.keyboard.Key                  := the_Event.modified_Key.Key;
    begin
+      -- Guard against key repeats.
+      --
+      if   (   up_Key_is_already_pressed and the_Key = Up)
+        or ( down_Key_is_already_pressed and the_Key = Down)
+        or ( left_Key_is_already_pressed and the_Key = Left)
+        or (right_Key_is_already_pressed and the_Key = Right)
+      then
+         return;
+      end if;
+
       case the_Key
       is
-         when up     => null; -- the_Players (2).moving_Up   := True;
-         when down   => null; -- the_Players (2).moving_Down := True;
-         when a      => null; -- the_Players (1).moving_Up   := True;
-         when z      => null; -- the_Players (1).moving_Down := True;
-
-         when SPACE  => null; -- relaunch_Ball := True;
+         when Up     => Self.my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => Self.my_Client.pc_sprite_Id,  Direction => Forward,   On => True));
+         when Down   => Self.my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => Self.my_Client.pc_sprite_Id,  Direction => Backward,  On => True));
+         when Right  => Self.my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => Self.my_Client.pc_sprite_Id,  Direction => Right,     On => True));
+         when Left   => Self.my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => Self.my_Client.pc_sprite_Id,  Direction => Left,      On => True));
          when others => null;
       end case;
+
+      case the_Key
+      is
+         when Up     =>    up_Key_is_already_pressed := True;
+         when Down   =>  down_Key_is_already_pressed := True;
+         when Right  => right_Key_is_already_pressed := True;
+         when Left   =>  left_Key_is_already_pressed := True;
+         when others => null;
+      end case;
+
    end respond;
 
 
@@ -81,18 +115,27 @@ is
    overriding
    procedure respond (Self : in out key_release_Response;   to_Event : in lace.Event.item'Class)
    is
-      pragma Unreferenced (Self);
-      use gel.Keyboard;
+      use arcana.Server,
+          gel.Keyboard;
 
       the_Event :          gel.Keyboard.key_release_Event renames gel.Keyboard.key_release_Event (to_Event);
       the_Key   : constant gel.keyboard.Key                    := the_Event.modified_Key.Key;
    begin
       case the_Key
       is
-         when up   =>   null; -- the_Players (2).moving_Up   := False;
-         when down =>   null; -- the_Players (2).moving_Down := False;
-         when a    =>   null; -- the_Players (1).moving_Up   := False;
-         when z    =>   null; -- the_Players (1).moving_Down := False;
+         when Up     => Self.my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => Self.my_Client.pc_sprite_Id,  Direction => Forward,   On => False));
+         when Down   => Self.my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => Self.my_Client.pc_sprite_Id,  Direction => Backward,  On => False));
+         when Right  => Self.my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => Self.my_Client.pc_sprite_Id,  Direction => Right,     On => False));
+         when Left   => Self.my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => Self.my_Client.pc_sprite_Id,  Direction => Left,      On => False));
+         when others => null;
+      end case;
+
+      case the_Key
+      is
+         when Up     =>    up_Key_is_already_pressed := False;
+         when Down   =>  down_Key_is_already_pressed := False;
+         when Right  => right_Key_is_already_pressed := False;
+         when Left   =>  left_Key_is_already_pressed := False;
          when others => null;
       end case;
    end respond;
@@ -136,10 +179,10 @@ is
                               Padding => 10);
 
          Self.Name   := to_unbounded_String (Name);
-         Self.Applet := gel.Forge.new_gui_Applet (Named         => "Arcana",
-                                                  window_Width  => 800,
-                                                  window_Height => 650,
-                                                  space_Kind    => physics.Box2d);
+         Self.Applet := gel.Forge.new_client_Applet (Named         => "Arcana",
+                                                     window_Width  => 800,
+                                                     window_Height => 650,
+                                                     space_Kind    => physics.Box2d);
 
          Self.Box.pack_Start (gel.Window.gtk.view (Self.Applet.Window).GL_Area);
 
@@ -161,20 +204,22 @@ is
                   +gel.Keyboard.key_release_Event'Tag);
 
 
-         -- Ball
-         --
-         Self.Player := gel.Forge.new_circle_Sprite (in_World => Self.Applet.World,
-                                                     Site     => [0.0, 0.0],
-                                                     Mass     => 1.0,
-                                                     Bounce   => 1.0,
-                                                     Friction => 0.0,
-                                                     Radius   => 0.5,
-                                                     Color    => Grey,
-                                                     Texture  => openGL.to_Asset ("assets/opengl/texture/Face1.bmp"));
+         --  -- Ball
+         --  --
+         --  Self.Player := gel.Forge.new_circle_Sprite (in_World => Self.Applet.World,
+         --                                              Site     => [0.0, 0.0],
+         --                                              Mass     => 1.0,
+         --                                              Bounce   => 1.0,
+         --                                              Friction => 0.0,
+         --                                              Radius   => 0.5,
+         --                                              Color    => Grey,
+         --                                              Texture  => openGL.to_Asset ("assets/opengl/texture/Face1.bmp"));
 
-         Self.Applet.Camera.  Site_is ([0.0, 0.0, 20.0]);
-         Self.Applet.World.Gravity_is ([0.0, 0.0,  0.0]);
-         Self.Applet.World.add        (Self.Player);
+         Self.Applet.Camera.Site_is ([0.0, 0.0, 20.0]);
+
+         --  Self.Applet.enable_simple_Dolly (in_World => 1);
+         --  Self.Applet.World.Gravity_is ([0.0, 0.0,  0.0]);
+         --  Self.Applet.World.add        (Self.Player);
 
 
          -- Set the lights position.
@@ -218,6 +263,15 @@ is
    begin
       return Self;
    end as_Subject;
+
+
+
+   overriding
+   procedure pc_sprite_Id_is (Self : in out Item;   Now : in gel.sprite_Id)
+   is
+   begin
+      Self.pc_sprite_Id := Now;
+   end pc_sprite_Id_is;
 
 
 
@@ -326,16 +380,30 @@ is
 
 
 
+   function client_World (Self : in Item) return gel.World.client.view
+   is
+   begin
+      return gel.World.client.view (Self.Applet.World (1));
+   end client_World;
+
+
+
    procedure start (Self : in out arcana.Client.local.item)
    is
-      use gel.Applet.gui_world,
+      use gel.Applet.client_world,
+          gel.Math,
           ada.Text_IO;
+
+      use type gel.Sprite.view,
+               gel.sprite_Id;
    begin
+      log ("Registering client with server.");
+
       --------
       -- Setup
       --
       begin
-         arcana.Server.register (Self'unchecked_Access);   -- Register our client with the Server.
+         arcana.Server.register (Self'unchecked_Access);   -- Register our client with the server.
       exception
          when arcana.Server.Name_already_used =>
             put_Line (+Self.Name & " is already in use.");
@@ -366,14 +434,35 @@ is
          end loop;
       end;
 
+      Put_Line ("Client world " & Self.Applet.client_World'address'Image);
+
+      Self.Applet.client_World.is_a_Mirror (of_World => arcana.Server.World);
+
 
       ------------
       -- Main Loop
       --
       while Self.Applet.is_open
       loop
+         --  put_Line ("MMM");
          Self.Applet.World.evolve;     -- Advance the world.
          Self.Applet.freshen;          -- Handle any new events and update the screen.
+
+
+         if    Self.pc_Sprite     = null
+           and Self.pc_sprite_Id /= gel.null_sprite_Id
+         then
+            Self.pc_Sprite := Self.client_World.fetch_Sprite (Self.pc_sprite_Id);
+            --  Self.Applet.enable_following_Dolly (follow => Self.pc_Sprite);
+         end if;
+
+
+         if Self.pc_Sprite /= null
+         then
+            null;
+            log (Self.pc_Sprite.Site'Image);
+            Self.Applet.Camera.Site_is (Self.pc_Sprite.Site + (0.0, 0.0, 30.0));
+         end if;
 
 
          declare
@@ -400,6 +489,9 @@ is
       -----------
       -- Shutdown
       --
+
+      arcana.Server.World.deregister (Self.Applet.client_World.all'Access);
+
       if    not Self.Server_has_shutdown
         and not Self.Server_is_dead
       then

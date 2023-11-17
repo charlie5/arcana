@@ -13,6 +13,9 @@ procedure launch_arcana_Server
 is
    use ada.Text_IO;
 begin
+   put_Line ("Starting up.");
+   arcana.Server.start;
+
    loop
       declare
          Command : constant String := get_Line;
