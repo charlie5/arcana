@@ -23,6 +23,16 @@ launch_amud_fused
 applet/distributed/bin
 applet/distributed/dsa
 
+applet/distributed/appimage/AppDir
+applet/distributed/appimage/AppDir-old
+applet/distributed/appimage/assets
+applet/distributed/appimage/client_tarball
+applet/distributed/appimage/client_tarball-old
+applet/distributed/client_tarball-old
+applet/distributed/test/wan_on_orth
+
+
+
 .clang-format
 
 launch_arcana_fused
