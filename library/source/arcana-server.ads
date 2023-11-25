@@ -38,6 +38,4 @@ is
       end record;
 
 
-
-
 end arcana.Server;

@@ -142,6 +142,78 @@ is
 
 
 
+   --  overriding
+   --  procedure respond (Self : in out key_press_Response;   to_Event : in lace.Event.item'Class)
+   --  is
+   --     use arcana.Server,
+   --         gel.Keyboard;
+   --
+   --     the_Event :          gel.Keyboard.key_press_Event renames gel.Keyboard.key_press_Event (to_Event);
+   --     the_Key   : constant gel.keyboard.Key                  := the_Event.modified_Key.Key;
+   --  begin
+   --     -- Guard against key repeats.
+   --     --
+   --     if   (   up_Key_is_already_pressed and the_Key = w)
+   --       or ( down_Key_is_already_pressed and the_Key = s)
+   --       or ( left_Key_is_already_pressed and the_Key = a)
+   --       or (right_Key_is_already_pressed and the_Key = d)
+   --     then
+   --        return;
+   --     end if;
+   --
+   --     case the_Key
+   --     is
+   --        when w  => Self.my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => Self.my_Client.pc_sprite_Id,  Direction => Forward,   On => True));
+   --        when s  => Self.my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => Self.my_Client.pc_sprite_Id,  Direction => Backward,  On => True));
+   --        when a  => Self.my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => Self.my_Client.pc_sprite_Id,  Direction => Left,      On => True));
+   --        when d  => Self.my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => Self.my_Client.pc_sprite_Id,  Direction => Right,     On => True));
+   --        when others => null;
+   --     end case;
+   --
+   --     case the_Key
+   --     is
+   --        when w  =>    up_Key_is_already_pressed := True;
+   --        when s  =>  down_Key_is_already_pressed := True;
+   --        when a  =>  left_Key_is_already_pressed := True;
+   --        when d  => right_Key_is_already_pressed := True;
+   --        when others => null;
+   --     end case;
+   --
+   --  end respond;
+   --
+   --
+   --
+   --  overriding
+   --  procedure respond (Self : in out key_release_Response;   to_Event : in lace.Event.item'Class)
+   --  is
+   --     use arcana.Server,
+   --         gel.Keyboard;
+   --
+   --     the_Event :          gel.Keyboard.key_release_Event renames gel.Keyboard.key_release_Event (to_Event);
+   --     the_Key   : constant gel.keyboard.Key                    := the_Event.modified_Key.Key;
+   --  begin
+   --     case the_Key
+   --     is
+   --        when w  => Self.my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => Self.my_Client.pc_sprite_Id,  Direction => Forward,   On => False));
+   --        when s  => Self.my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => Self.my_Client.pc_sprite_Id,  Direction => Backward,  On => False));
+   --        when a  => Self.my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => Self.my_Client.pc_sprite_Id,  Direction => Left,      On => False));
+   --        when d  => Self.my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => Self.my_Client.pc_sprite_Id,  Direction => Right,     On => False));
+   --        when others => null;
+   --     end case;
+   --
+   --     case the_Key
+   --     is
+   --        when w  =>    up_Key_is_already_pressed := False;
+   --        when s  =>  down_Key_is_already_pressed := False;
+   --        when a  =>  left_Key_is_already_pressed := False;
+   --        when d  => right_Key_is_already_pressed := False;
+   --        when others => null;
+   --     end case;
+   --  end respond;
+   --
+
+
+
 
    --------
    -- Forge
@@ -163,7 +235,7 @@ is
          --  Create a window with a size of 800 x 650.
          --
          gtk_new (Self.top_Window);
-         Self.top_Window.set_default_Size (800, 650);
+         Self.top_Window.set_default_Size (1920, 1080);
 
          --  Create a box to organize vertically the contents of the window.
          --
@@ -180,8 +252,8 @@ is
 
          Self.Name   := to_unbounded_String (Name);
          Self.Applet := gel.Forge.new_client_Applet (Named         => "Arcana",
-                                                     window_Width  => 800,
-                                                     window_Height => 650,
+                                                     window_Width  => 1920,
+                                                     window_Height => 1080,
                                                      space_Kind    => physics.Box2d);
 
          Self.Box.pack_Start (gel.Window.gtk.view (Self.Applet.Window).GL_Area);
@@ -227,7 +299,9 @@ is
          declare
             Light : openGL.Light.item := Self.Applet.Renderer.new_Light;
          begin
-            Light.Site_is ([0.0, -1000.0, 0.0]);
+            Light.Site_is                ([0.0, -1000.0, 0.0]);
+            Light.ambient_Coefficient_is (0.5);
+
             Self.Applet.Renderer.set (Light);
          end;
       end return;
@@ -272,6 +346,14 @@ is
    begin
       Self.pc_sprite_Id := Now;
    end pc_sprite_Id_is;
+
+
+
+   function pc_sprite_Id (Self : in Item) return gel.sprite_Id
+   is
+   begin
+      return Self.pc_sprite_Id;
+   end pc_sprite_Id;
 
 
 
@@ -459,8 +541,10 @@ is
 
          if Self.pc_Sprite /= null
          then
-            null;
-            --  Self.Applet.Camera.Site_is (Self.pc_Sprite.Site + (0.0, 0.0, 30.0));
+            Self.Applet.Camera.Site_is (Self.pc_Sprite.Site + (0.0, 0.0, 30.0));
+            --  Self.Applet.Camera.Site_is (Self.pc_Sprite.Site +  Self.pc_Sprite.Spin * (0.0, 10.0, 30.0));
+            --  Self.Applet.Camera.Spin_is (Self.pc_Sprite.Spin);
+            --  log (Self.pc_Sprite.Spin'Image);
          end if;
 
 

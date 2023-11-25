@@ -223,22 +223,30 @@ is
       -- Create the Player.
       --
       declare
-         the_Player : constant gel.Sprite.view := gel.Forge.new_rectangle_Sprite (in_World => the_World'Access,
-                                                                         Site     => [-0.0, 0.0],
-                                                                         Mass     => 1.0,
-                                                                         Bounce   => 1.0,
-                                                                         Friction => 1.0,
-                                                                         Width    => 1.0,
-                                                                         Height   => 1.0,
-                                                                         Color    => openGL.Palette.Grey,
-                                                                         Texture  => openGL.to_Asset ("assets/human.png"));
+         --  the_Player : constant gel.Sprite.view := gel.Forge.new_rectangle_Sprite (in_World => the_World'Access,
+         --                                                                           Site     => [-0.0, 0.0],
+         --                                                                           Mass     => 1.0,
+         --                                                                           Bounce   => 1.0,
+         --                                                                           Friction => 1.0,
+         --                                                                           Width    => 1.0,
+         --                                                                           Height   => 1.0,
+         --                                                                           Color    => openGL.Palette.Grey,
+         --                                                                           Texture  => openGL.to_Asset ("assets/human.png"));
+         the_Player : constant gel.Sprite.view := gel.Forge.new_circle_Sprite (in_World => the_World'Access,
+                                                                               Site     => [0.0, 0.0],
+                                                                               Mass     => 1.0,
+                                                                               Bounce   => 1.0,
+                                                                               Friction => 1.0,
+                                                                               Radius   => 0.5,
+                                                                               Color    => Green,
+                                                                               Texture  => openGL.to_Asset ("assets/human.png"));
       begin
          log ("arcana.Server.register ~ the_Player.Visual.Model.Id:" & the_Player.Visual.Model.Id'Image);
 
          the_Player.user_Data_is (new sprite_Data);
          the_World.add (the_Player);
 
-         -- Emit a new sprite added event for any interested observers.
+         -- Emit a new 'sprite added' event for any interested observers.
          --
          declare
             the_Event : constant gel.events.my_new_sprite_added_to_world_Event
@@ -267,7 +275,10 @@ is
    procedure deregister (the_Client : in Client.view)
    is
    begin
+      log ("Deregistering '" & the_Client.Name & "'.");
+
       safe_Clients.rid (the_Client);
+      the_World   .destroy (the_World.fetch_Sprite (the_Client.pc_sprite_Id));
    end deregister;
 
 
@@ -381,15 +392,24 @@ is
 
       -- The One Tree.
       --
-      the_one_Tree := gel.Forge.new_rectangle_Sprite (in_World => the_World'Access,
-                                                      Site     => [0.0, 0.0],
-                                                      Mass     => 0.0,
-                                                      Bounce   => 1.0,
-                                                      Friction => 1.0,
-                                                      Width    => 1.0,
-                                                      Height   => 1.0,
-                                                      Color    => Green,
-                                                      Texture  => openGL.to_Asset ("assets/tree7.png"));
+      --  the_one_Tree := gel.Forge.new_rectangle_Sprite (in_World => the_World'Access,
+      --                                                  Site     => [0.0, 0.0],
+      --                                                  Mass     => 0.0,
+      --                                                  Bounce   => 1.0,
+      --                                                  Friction => 1.0,
+      --                                                  Width    => 1.0,
+      --                                                  Height   => 1.0,
+      --                                                  Color    => Green,
+      --                                                  Texture  => openGL.to_Asset ("assets/tree7.png"));
+
+      the_one_Tree := gel.Forge.new_circle_Sprite (in_World => the_World'Access,
+                                                   Site     => [0.0, 0.0],
+                                                   Mass     => 0.0,
+                                                   Bounce   => 1.0,
+                                                   Friction => 1.0,
+                                                   Radius   => 0.5,
+                                                   Color    => Green,
+                                                   Texture  => openGL.to_Asset ("assets/tree7.png"));
       the_World.add (the_one_Tree);
 
       --  while the_World.is_open
@@ -404,6 +424,7 @@ is
          end loop;
 
          the_World.evolve;     -- Advance the world in time.
+         delay Duration'Small * 10_000.0;   -- 1.0 / 1200.0;
       end loop;
    end start;
 

@@ -65,6 +65,9 @@ is
    overriding
    procedure pc_sprite_Id_is (Self : in out Item;   Now : in gel.sprite_Id);
 
+   overriding
+   function  pc_sprite_Id    (Self : in     Item)     return gel.sprite_Id;
+
 
 
 private
