@@ -361,43 +361,43 @@ is
    -- Operations
    --
 
-   overriding
-   procedure register_Client (Self : in out Item;   other_Client : in Client.view)
-   is
-      use lace.Event.utility,
-          ada.Text_IO;
-   begin
-      lace.Event.utility.connect (the_Observer  => Self'unchecked_Access,
-                                  to_Subject    => other_Client.as_Subject,
-                                  with_Response => the_Response'Access,
-                                  to_Event_Kind => to_Kind (arcana.Client.Message'Tag));
-
-      put_Line (other_Client.Name & " is here.");
-   end register_Client;
-
-
-
-   overriding
-   procedure deregister_Client (Self : in out Item;   other_Client_as_Observer : in lace.Observer.view;
-                                                      other_Client_Name        : in String)
-   is
-      use lace.Event.utility,
-          ada.Text_IO;
-   begin
-      begin
-         Self.as_Subject.deregister (other_Client_as_Observer,
-                                     to_Kind (arcana.Client.Message'Tag));
-      exception
-         when constraint_Error =>
-            raise unknown_Client with "Other client not known. Deregister is not required.";
-      end;
-
-      Self.as_Observer.rid (the_Response'unchecked_Access,
-                            to_Kind (arcana.Client.Message'Tag),
-                            other_Client_Name);
-
-      put_Line (other_Client_Name & " leaves.");
-   end deregister_Client;
+   --  overriding
+   --  procedure register_Client (Self : in out Item;   other_Client : in Client.view)
+   --  is
+   --     use lace.Event.utility,
+   --         ada.Text_IO;
+   --  begin
+   --     lace.Event.utility.connect (the_Observer  => Self'unchecked_Access,
+   --                                 to_Subject    => other_Client.as_Subject,
+   --                                 with_Response => the_Response'Access,
+   --                                 to_Event_Kind => to_Kind (arcana.Client.Message'Tag));
+   --
+   --     put_Line (other_Client.Name & " is here.");
+   --  end register_Client;
+   --
+   --
+   --
+   --  overriding
+   --  procedure deregister_Client (Self : in out Item;   other_Client_as_Observer : in lace.Observer.view;
+   --                                                     other_Client_Name        : in String)
+   --  is
+   --     use lace.Event.utility,
+   --         ada.Text_IO;
+   --  begin
+   --     begin
+   --        Self.as_Subject.deregister (other_Client_as_Observer,
+   --                                    to_Kind (arcana.Client.Message'Tag));
+   --     exception
+   --        when constraint_Error =>
+   --           raise unknown_Client with "Other client not known. Deregister is not required.";
+   --     end;
+   --
+   --     Self.as_Observer.rid (the_Response'unchecked_Access,
+   --                           to_Kind (arcana.Client.Message'Tag),
+   --                           other_Client_Name);
+   --
+   --     put_Line (other_Client_Name & " leaves.");
+   --  end deregister_Client;
 
 
 
@@ -497,24 +497,24 @@ is
 
       check_Server_lives.start (Self'unchecked_Access);
 
-      declare
-         Peers : constant arcana.Client.views := arcana.Server.all_Clients;
-      begin
-         for i in Peers'Range
-         loop
-            if Self'unchecked_Access /= Peers (i)
-            then
-               begin
-                  Peers (i).register_Client (Self'unchecked_Access);    -- Register our client with all other clients.
-                  Self     .register_Client (Peers (i));                -- Register all other clients with our client.
-               exception
-                  when system.RPC.communication_Error
-                     | storage_Error =>
-                     null;     -- Peer (i) has died, so ignore it and do nothing.
-               end;
-            end if;
-         end loop;
-      end;
+      --  declare
+      --     Peers : constant arcana.Client.views := arcana.Server.all_Clients;
+      --  begin
+      --     for i in Peers'Range
+      --     loop
+      --        if Self'unchecked_Access /= Peers (i)
+      --        then
+      --           begin
+      --              Peers (i).register_Client (Self'unchecked_Access);    -- Register our client with all other clients.
+      --              Self     .register_Client (Peers (i));                -- Register all other clients with our client.
+      --           exception
+      --              when system.RPC.communication_Error
+      --                 | storage_Error =>
+      --                 null;     -- Peer (i) has died, so ignore it and do nothing.
+      --           end;
+      --        end if;
+      --     end loop;
+      --  end;
 
       Put_Line ("Client world " & Self.Applet.client_World'address'Image);
 
@@ -585,27 +585,27 @@ is
                Self.Server_is_dead := True;
          end;
 
-         if not Self.Server_is_dead
-         then
-            declare
-               Peers : constant arcana.Client.views := arcana.Server.all_Clients;
-            begin
-               for i in Peers'Range
-               loop
-                  if Self'unchecked_Access /= Peers (i)
-                  then
-                     begin
-                        Peers (i).deregister_Client ( Self'unchecked_Access,   -- Deregister our client with every other client.
-                                                     +Self.Name);
-                     exception
-                        when system.RPC.communication_Error
-                           | storage_Error =>
-                           null;   -- Peer is dead, so do nothing.
-                     end;
-                  end if;
-               end loop;
-            end;
-         end if;
+         --  if not Self.Server_is_dead
+         --  then
+         --     declare
+         --        Peers : constant arcana.Client.views := arcana.Server.all_Clients;
+         --     begin
+         --        for i in Peers'Range
+         --        loop
+         --           if Self'unchecked_Access /= Peers (i)
+         --           then
+         --              begin
+         --                 Peers (i).deregister_Client ( Self'unchecked_Access,   -- Deregister our client with every other client.
+         --                                              +Self.Name);
+         --              exception
+         --                 when system.RPC.communication_Error
+         --                    | storage_Error =>
+         --                    null;   -- Peer is dead, so do nothing.
+         --              end;
+         --           end if;
+         --        end loop;
+         --     end;
+         --  end if;
       end if;
 
       check_Server_lives.halt;

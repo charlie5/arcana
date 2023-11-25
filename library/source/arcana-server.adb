@@ -277,8 +277,14 @@ is
    begin
       log ("Deregistering '" & the_Client.Name & "'.");
 
-      safe_Clients.rid (the_Client);
+      safe_Clients.rid     (the_Client);
       the_World   .destroy (the_World.fetch_Sprite (the_Client.pc_sprite_Id));
+
+      lace.Event.utility.disconnect (the_Observer  => the_World.local_Observer,
+                                     from_Subject  => the_Client.as_Subject,
+                                     for_Response  => the_pc_move_Response'Access,
+                                     to_Event_Kind => lace.Event.utility.to_Kind (pc_move_Event'Tag),
+                                     subject_Name  => the_Client.Name);
    end deregister;
 
 
@@ -344,24 +350,24 @@ is
                end;
             end loop;
 
-            declare
-               all_Clients : constant Client.views := arcana.Server.all_Clients;
-            begin
-               for Each of all_Clients
-               loop
-                  for i in 1 .. dead_Count
-                  loop
-                     begin
-                        put_Line ("Ridding " & (+Dead (i).Name) & " from " & Each.Name);
-                        Each.deregister_Client ( Dead (i).as_Observer,
-                                                +Dead (i).Name);
-                     exception
-                        when arcana.Client.unknown_Client =>
-                           put_Line ("Deregister of " & (+Dead (i).Name) & " from " & Each.Name & " is not needed.");
-                     end;
-                  end loop;
-               end loop;
-            end;
+            --  declare
+            --     all_Clients : constant Client.views := arcana.Server.all_Clients;
+            --  begin
+            --     for Each of all_Clients
+            --     loop
+            --        for i in 1 .. dead_Count
+            --        loop
+            --           begin
+            --              put_Line ("Ridding " & (+Dead (i).Name) & " from " & Each.Name);
+            --              Each.deregister_Client ( Dead (i).as_Observer,
+            --                                      +Dead (i).Name);
+            --           exception
+            --              when arcana.Client.unknown_Client =>
+            --                 put_Line ("Deregister of " & (+Dead (i).Name) & " from " & Each.Name & " is not needed.");
+            --           end;
+            --        end loop;
+            --     end loop;
+            --  end;
          end;
       end loop;
 
