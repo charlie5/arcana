@@ -246,13 +246,13 @@ is
          the_Player.user_Data_is (new sprite_Data);
          the_World.add (the_Player);
 
-         -- Emit a new 'sprite added' event for any interested observers.
+         -- Emit a new 'add sprite' event for any interested observers.
          --
          declare
-            the_Event : constant gel.events.my_new_sprite_added_to_world_Event
-              := (Pair => (sprite_id         => the_Player.Id,
+            the_Event : constant gel.events.new_sprite_Event
+              := (Pair => (sprite_Id         => the_Player.Id,
                            graphics_model_Id => the_Player.Visual.Model.Id,
-                           physics_model_id  => the_Player.physics_Model.Id,
+                           physics_model_Id  => the_Player.physics_Model.Id,
                            mass              => the_Player.Mass,
                            transform         => the_Player.Transform,
                            is_visible        => the_Player.is_Visible));
@@ -277,8 +277,17 @@ is
    begin
       log ("Deregistering '" & the_Client.Name & "'.");
 
+      -- Emit a new 'rid sprite' event for any interested observers.
+      --
+      declare
+         the_Event : constant gel.events.rid_sprite_Event := (Id => the_Client.pc_sprite_Id);
+      begin
+         the_World.emit (the_Event);
+      end;
+
       safe_Clients.rid     (the_Client);
-      the_World   .destroy (the_World.fetch_Sprite (the_Client.pc_sprite_Id));
+      the_World   .rid     (the_World.fetch_Sprite (the_Client.pc_sprite_Id));
+      --  the_World   .destroy (the_World.fetch_Sprite (the_Client.pc_sprite_Id));
 
       lace.Event.utility.disconnect (the_Observer  => the_World.local_Observer,
                                      from_Subject  => the_Client.as_Subject,
