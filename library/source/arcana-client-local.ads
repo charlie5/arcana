@@ -99,7 +99,7 @@ private
    --- Item
    --
 
-   type Item is limited new Subject       .item
+   type Item is limited new Subject      .item
                         and arcana.Client.item with
       record
          Name                : unbounded_String;

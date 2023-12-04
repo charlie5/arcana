@@ -478,6 +478,9 @@ is
 
       use type gel.Sprite.view,
                gel.sprite_Id;
+
+      Cycle : Natural := 0;
+
    begin
       log ("Registering client with server.");
 
@@ -490,6 +493,7 @@ is
          when arcana.Server.Name_already_used =>
             put_Line (+Self.Name & " is already in use.");
             check_Server_lives.halt;
+            free (Self.Applet);
             return;
       end;
 
@@ -516,8 +520,6 @@ is
       --     end loop;
       --  end;
 
-      Put_Line ("Client world " & Self.Applet.client_World'address'Image);
-
       Self.Applet.client_World.is_a_Mirror (of_World => arcana.Server.World);
 
 
@@ -526,7 +528,14 @@ is
       --
       while Self.Applet.is_open
       loop
-         --  put_Line ("MMM");
+         Cycle := Cycle + 1;
+
+         if Cycle = 1500
+         then
+            null;
+            --  raise Constraint_Error with "cycle 500";
+         end if;
+
          Self.Applet.World.evolve;     -- Advance the world.
          Self.Applet.freshen;          -- Handle any new events and update the screen.
 
@@ -534,8 +543,13 @@ is
          if    Self.pc_Sprite     = null
            and Self.pc_sprite_Id /= gel.null_sprite_Id
          then
-            Self.pc_Sprite := Self.client_World.fetch_Sprite (Self.pc_sprite_Id);
-            --  Self.Applet.enable_following_Dolly (follow => Self.pc_Sprite);
+            begin
+               Self.pc_Sprite := Self.client_World.fetch_Sprite (Self.pc_sprite_Id);
+               --  Self.Applet.enable_following_Dolly (follow => Self.pc_Sprite);
+            exception
+               when constraint_Error =>
+                  log ("Warning: Unable to fetch PC sprite" & Self.pc_sprite_Id'Image & ".");
+            end;
          end if;
 
 
@@ -572,7 +586,6 @@ is
       -----------
       -- Shutdown
       --
-
       arcana.Server.World.deregister (Self.Applet.client_World.all'Access);
 
       if    not Self.Server_has_shutdown
@@ -611,11 +624,19 @@ is
       check_Server_lives.halt;
       free (Self.Applet);
       lace.Event.utility.close;
+
+   exception
+      when others =>
+         check_Server_lives.halt;
+         free (Self.Applet);
+         lace.Event.utility.close;
+
+         raise;
    end start;
 
 
    -- 'last_chance_Handler' is commented out to avoid multiple definitions
-   --  of link symbols in 'build_All' test procedure (Tier 5).
+   --  of link symbols in 'build_All' test procedure (Lace Tier 5).
    --
 
    --  procedure last_chance_Handler (Msg  : in system.Address;

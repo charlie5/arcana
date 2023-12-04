@@ -8,6 +8,7 @@ with
      Physics,
 
      lace.Observer,
+     lace.Subject,
      lace.Response,
      lace.Event.utility,
 
@@ -51,14 +52,95 @@ is
 
 
 
+   -----------
+   --- Clients
+   --
+
+   protected new_Clients
+   is
+      procedure add (the_Client : in Client.view);
+      function  fetch return Client.views;
+      procedure clear;
+
+   private
+      Clients : Client.views (1 .. 25);
+      Count   : Natural := 0;
+   end new_Clients;
+
+
+   protected body new_Clients
+   is
+      procedure add (the_Client : in Client.view)
+      is
+      begin
+         Count           := Count + 1;
+         Clients (Count) := the_Client;
+      end add;
+
+      function fetch return Client.views
+      is
+      begin
+         return Clients (1 .. Count);
+      end fetch;
+
+      procedure clear
+      is
+      begin
+         Count := 0;
+      end clear;
+
+   end new_Clients;
+
+
+
+   protected old_Clients
+   is
+      procedure add (the_Client : in Client.view);
+      function  fetch return Client.views;
+      procedure clear;
+
+   private
+      Clients : Client.views (1 .. 25);
+      Count   : Natural := 0;
+   end old_Clients;
+
+
+   protected body old_Clients
+   is
+      procedure add (the_Client : in Client.view)
+      is
+      begin
+         Count           := Count + 1;
+         Clients (Count) := the_Client;
+      end add;
+
+
+      function fetch return Client.views
+      is
+      begin
+         return Clients (1 .. Count);
+      end fetch;
+
+
+      procedure clear
+      is
+      begin
+         Count := 0;
+      end clear;
+
+   end old_Clients;
+
+
 
 
    type client_Info is
-         record
-            View        : Client.view;
-            Name        : unbounded_String;
-            as_Observer : lace.Observer.view;
-         end record;
+      record
+         Client       : arcana.Client.view;
+         Name         : unbounded_String;
+         as_Observer  : lace.Observer.view;
+         as_Subject   : lace.Subject .view;
+         pc_sprite_Id : gel.sprite_Id;
+      end record;
 
    type client_Info_array is array (Positive range <>) of client_Info;
 
@@ -75,6 +157,8 @@ is
       procedure rid (the_Client : in Client.view);
 
       function  all_client_Info return client_Info_array;
+      function  Info (for_Client : in Client.view) return client_Info;
+
    private
       Clients : client_Info_array (1 .. max_Clients);
    end safe_Clients;
@@ -90,10 +174,14 @@ is
       begin
          for i in Clients'Range
          loop
-            if Clients (i).View = null then
-               Clients (i).View        :=  the_Client;
-               Clients (i).Name        := +the_Client.Name;
-               Clients (i).as_Observer :=  the_Client.as_Observer;
+            if Clients (i).Client = null
+            then
+               Clients (i).Client       :=  the_Client;
+               Clients (i).Name         := +the_Client.Name;
+               Clients (i).as_Observer  :=  the_Client.as_Observer;
+               Clients (i).as_Subject   :=  the_Client.as_Subject;
+               Clients (i).pc_sprite_Id :=  the_Client.pc_sprite_Id;
+               --  log ("JHJKJH " & Clients (i).pc_sprite_Id'Image);
                return;
             end if;
          end loop;
@@ -105,8 +193,8 @@ is
       begin
          for i in Clients'Range
          loop
-            if Clients (i).View = the_Client then
-               Clients (i).View := null;
+            if Clients (i).Client = the_Client then
+               Clients (i).Client := null;
                return;
             end if;
          end loop;
@@ -122,7 +210,7 @@ is
       begin
          for i in Clients'Range
          loop
-            if Clients (i).View /= null
+            if Clients (i).Client /= null
             then
                Count          := Count + 1;
                Result (Count) := Clients (i);
@@ -131,6 +219,22 @@ is
 
          return Result (1 .. Count);
       end all_client_Info;
+
+
+      function Info (for_Client : in Client.view) return client_Info
+      is
+      begin
+         for i in Clients'Range
+         loop
+            if Clients (i).Client = for_Client
+            then
+               return Clients (i);
+            end if;
+         end loop;
+
+         raise program_Error with "Unknown client.";
+      end Info;
+
 
    end safe_Clients;
 
@@ -217,8 +321,7 @@ is
          end if;
       end loop;
 
-      safe_Clients.add (the_Client);
-
+      --  new_Clients.add (the_Client);
 
       -- Create the Player.
       --
@@ -263,6 +366,7 @@ is
          the_Client.pc_sprite_Id_is (the_Player.Id);
       end;
 
+      safe_Clients.add (the_Client);
 
       lace.Event.utility.connect (the_Observer  => the_World.local_Observer,
                                   to_Subject    => the_Client.as_Subject,
@@ -272,29 +376,111 @@ is
 
 
 
-   procedure deregister (the_Client : in Client.view)
+   procedure register_new (Client : in arcana.Client.view)
    is
    begin
-      log ("Deregistering '" & the_Client.Name & "'.");
+      -- Create the Player.
+      --
+      declare
+         the_Player : constant gel.Sprite.view := gel.Forge.new_circle_Sprite (in_World => the_World'Access,
+                                                                               Site     => [0.0, 0.0],
+                                                                               Mass     => 1.0,
+                                                                               Bounce   => 1.0,
+                                                                               Friction => 1.0,
+                                                                               Radius   => 0.5,
+                                                                               Color    => Green,
+                                                                               Texture  => openGL.to_Asset ("assets/human.png"));
+      begin
+         log ("arcana.Server.register_new ~ the_Player.Visual.Model.Id:" & the_Player.Visual.Model.Id'Image);
+
+         the_Player.user_Data_is (new sprite_Data);
+         the_World.add (the_Player);
+
+         -- Emit a new 'add sprite' event for any interested observers.
+         --
+         declare
+            the_Event : constant gel.events.new_sprite_Event
+              := (Pair => (sprite_Id         => the_Player.Id,
+                           graphics_model_Id => the_Player.Visual.Model.Id,
+                           physics_model_Id  => the_Player.physics_Model.Id,
+                           mass              => the_Player.Mass,
+                           transform         => the_Player.Transform,
+                           is_visible        => the_Player.is_Visible));
+         begin
+            the_World.emit (the_Event);
+         end;
+
+         Client.pc_sprite_Id_is (the_Player.Id);
+      end;
+
+      safe_Clients.add (Client);
+
+      lace.Event.utility.connect (the_Observer  => the_World.local_Observer,
+                                  to_Subject    => Client.as_Subject,
+                                  with_Response => the_pc_move_Response'Access,
+                                  to_Event_Kind => lace.Event.utility.to_Kind (pc_move_Event'Tag));
+   end register_new;
+
+
+
+   -------------------------
+   --- Client Deregistration
+   --
+
+   procedure deregister (the_Client : in Client.view)
+   is
+      client_Info : constant Server.client_Info := safe_Clients.Info (for_Client => the_Client);
+   begin
+      log ("Deregistering '" & to_String (client_Info.Name) & "'.");
+
+      --  old_Clients.add (the_Client);
 
       -- Emit a new 'rid sprite' event for any interested observers.
       --
       declare
-         the_Event : constant gel.events.rid_sprite_Event := (Id => the_Client.pc_sprite_Id);
+         the_Event : constant gel.events.rid_sprite_Event := (Id => client_Info.pc_sprite_Id);
       begin
          the_World.emit (the_Event);
       end;
 
       safe_Clients.rid     (the_Client);
-      the_World   .rid     (the_World.fetch_Sprite (the_Client.pc_sprite_Id));
+      the_World   .rid     (the_World.fetch_Sprite (client_Info.pc_sprite_Id));
       --  the_World   .destroy (the_World.fetch_Sprite (the_Client.pc_sprite_Id));
 
       lace.Event.utility.disconnect (the_Observer  => the_World.local_Observer,
-                                     from_Subject  => the_Client.as_Subject,
+                                     from_Subject  => client_Info.as_Subject,
                                      for_Response  => the_pc_move_Response'Access,
                                      to_Event_Kind => lace.Event.utility.to_Kind (pc_move_Event'Tag),
-                                     subject_Name  => the_Client.Name);
+                                     subject_Name  => to_String (client_Info.Name));
    end deregister;
+
+
+
+   procedure deregister_old (Client : in arcana.Client.view)
+   is
+      client_Info : constant Server.client_Info := safe_Clients.Info (for_Client => Client);
+   begin
+      log ("Deregistering old client '" & to_String (client_Info.Name) & "'.");
+
+      -- Emit a new 'rid sprite' event for any interested observers.
+      --
+      declare
+         the_Event : constant gel.events.rid_sprite_Event := (Id => client_Info.pc_sprite_Id);
+      begin
+         the_World.emit (the_Event);
+      end;
+
+      safe_Clients.rid     (Client);
+      the_World   .rid     (the_World.fetch_Sprite (client_Info.pc_sprite_Id));
+      --  the_World   .destroy (the_World.fetch_Sprite (the_Client.pc_sprite_Id));
+
+      lace.Event.utility.disconnect (the_Observer  => the_World.local_Observer,
+                                     from_Subject  => client_Info.as_Subject,
+                                     for_Response  => the_pc_move_Response'Access,
+                                     to_Event_Kind => lace.Event.utility.to_Kind (pc_move_Event'Tag),
+                                     subject_Name  => to_String (client_Info.Name));
+   end deregister_old;
+
 
 
 
@@ -305,11 +491,12 @@ is
    begin
       for i in Result'Range
       loop
-         Result (i) := all_Info (i).View;
+         Result (i) := all_Info (i).Client;
       end loop;
 
       return Result;
    end all_Clients;
+
 
 
 
@@ -347,12 +534,12 @@ is
             for Each of all_Info
             loop
                begin
-                  Each.View.ping;
+                  Each.Client.ping;
                exception
                   when system.RPC.communication_Error
                      | storage_Error =>
                      put_Line (+Each.Name & " has died.");
-                     deregister (Each.View);
+                     deregister (Each.Client);
 
                      dead_Count        := dead_Count + 1;
                      Dead (dead_Count) := Each;
@@ -407,16 +594,6 @@ is
 
       -- The One Tree.
       --
-      --  the_one_Tree := gel.Forge.new_rectangle_Sprite (in_World => the_World'Access,
-      --                                                  Site     => [0.0, 0.0],
-      --                                                  Mass     => 0.0,
-      --                                                  Bounce   => 1.0,
-      --                                                  Friction => 1.0,
-      --                                                  Width    => 1.0,
-      --                                                  Height   => 1.0,
-      --                                                  Color    => Green,
-      --                                                  Texture  => openGL.to_Asset ("assets/tree7.png"));
-
       the_one_Tree := gel.Forge.new_circle_Sprite (in_World => the_World'Access,
                                                    Site     => [0.0, 0.0],
                                                    Mass     => 0.0,
@@ -429,6 +606,26 @@ is
 
       --  while the_World.is_open
       loop
+         --  -- Register new clients.
+         --  --
+         --  for Each of new_Clients.fetch
+         --  loop
+         --     register_new (Each);
+         --  end loop;
+         --
+         --  new_Clients.clear;
+
+
+         --  -- Deregister old clients.
+         --  --
+         --  for Each of old_Clients.fetch
+         --  loop
+         --     deregister_old (Each);
+         --  end loop;
+         --
+         --  old_Clients.clear;
+
+
          for Each of the_World.all_Sprites.fetch
          loop
             if Each.user_Data /= null
