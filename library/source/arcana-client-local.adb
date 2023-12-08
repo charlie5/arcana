@@ -8,6 +8,7 @@ with
      gel.Window.setup,
      gel.Window.gtk,
      gel.Keyboard,
+     gel.World.client,
 
      Physics,
 
@@ -17,6 +18,7 @@ with
      gtk.Main,
 
      system.RPC,
+     --  ada.Tags,
      ada.Exceptions,
      ada.Text_IO;
 
@@ -25,13 +27,22 @@ pragma Unreferenced (gel.Window.setup);
 
 package body arcana.Client.local
 is
+   ----------
    -- Utility
    --
+
    function "+" (From : in unbounded_String) return String
                  renames to_String;
 
-   -- Responses
+
+   procedure log (Message : in String := "")
+                  renames ada.Text_IO.put_Line;
+
+
+   --------------
+   --- Gel Events
    --
+
    type Show is new lace.Response.item with null record;
 
    -- Response is to display the arcana message on the users console.
@@ -51,29 +62,52 @@ is
 
 
 
-   --------------
-   --- Gel Events
+
+   --- Guards against key repeats.
    --
+      up_Key_is_already_pressed,
+    down_Key_is_already_pressed,
+    left_Key_is_already_pressed,
+   right_Key_is_already_pressed : Boolean := False;
+
 
    overriding
    procedure respond (Self : in out key_press_Response;   to_Event : in lace.Event.item'Class)
    is
-      pragma Unreferenced (Self);
-      use gel.Keyboard;
+      use arcana.Server,
+          gel.Keyboard;
 
       the_Event :          gel.Keyboard.key_press_Event renames gel.Keyboard.key_press_Event (to_Event);
       the_Key   : constant gel.keyboard.Key                  := the_Event.modified_Key.Key;
    begin
+      -- Guard against key repeats.
+      --
+      if   (   up_Key_is_already_pressed and the_Key = Up)
+        or ( down_Key_is_already_pressed and the_Key = Down)
+        or ( left_Key_is_already_pressed and the_Key = Left)
+        or (right_Key_is_already_pressed and the_Key = Right)
+      then
+         return;
+      end if;
+
       case the_Key
       is
-         when up     => null; -- the_Players (2).moving_Up   := True;
-         when down   => null; -- the_Players (2).moving_Down := True;
-         when a      => null; -- the_Players (1).moving_Up   := True;
-         when z      => null; -- the_Players (1).moving_Down := True;
-
-         when SPACE  => null; -- relaunch_Ball := True;
+         when Up     => Self.my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => Self.my_Client.pc_sprite_Id,  Direction => Forward,   On => True));
+         when Down   => Self.my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => Self.my_Client.pc_sprite_Id,  Direction => Backward,  On => True));
+         when Right  => Self.my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => Self.my_Client.pc_sprite_Id,  Direction => Right,     On => True));
+         when Left   => Self.my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => Self.my_Client.pc_sprite_Id,  Direction => Left,      On => True));
          when others => null;
       end case;
+
+      case the_Key
+      is
+         when Up     =>    up_Key_is_already_pressed := True;
+         when Down   =>  down_Key_is_already_pressed := True;
+         when Right  => right_Key_is_already_pressed := True;
+         when Left   =>  left_Key_is_already_pressed := True;
+         when others => null;
+      end case;
+
    end respond;
 
 
@@ -81,21 +115,102 @@ is
    overriding
    procedure respond (Self : in out key_release_Response;   to_Event : in lace.Event.item'Class)
    is
-      pragma Unreferenced (Self);
-      use gel.Keyboard;
+      use arcana.Server,
+          gel.Keyboard;
 
       the_Event :          gel.Keyboard.key_release_Event renames gel.Keyboard.key_release_Event (to_Event);
       the_Key   : constant gel.keyboard.Key                    := the_Event.modified_Key.Key;
    begin
       case the_Key
       is
-         when up   =>   null; -- the_Players (2).moving_Up   := False;
-         when down =>   null; -- the_Players (2).moving_Down := False;
-         when a    =>   null; -- the_Players (1).moving_Up   := False;
-         when z    =>   null; -- the_Players (1).moving_Down := False;
+         when Up     => Self.my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => Self.my_Client.pc_sprite_Id,  Direction => Forward,   On => False));
+         when Down   => Self.my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => Self.my_Client.pc_sprite_Id,  Direction => Backward,  On => False));
+         when Right  => Self.my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => Self.my_Client.pc_sprite_Id,  Direction => Right,     On => False));
+         when Left   => Self.my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => Self.my_Client.pc_sprite_Id,  Direction => Left,      On => False));
+         when others => null;
+      end case;
+
+      case the_Key
+      is
+         when Up     =>    up_Key_is_already_pressed := False;
+         when Down   =>  down_Key_is_already_pressed := False;
+         when Right  => right_Key_is_already_pressed := False;
+         when Left   =>  left_Key_is_already_pressed := False;
          when others => null;
       end case;
    end respond;
+
+
+
+   --  overriding
+   --  procedure respond (Self : in out key_press_Response;   to_Event : in lace.Event.item'Class)
+   --  is
+   --     use arcana.Server,
+   --         gel.Keyboard;
+   --
+   --     the_Event :          gel.Keyboard.key_press_Event renames gel.Keyboard.key_press_Event (to_Event);
+   --     the_Key   : constant gel.keyboard.Key                  := the_Event.modified_Key.Key;
+   --  begin
+   --     -- Guard against key repeats.
+   --     --
+   --     if   (   up_Key_is_already_pressed and the_Key = w)
+   --       or ( down_Key_is_already_pressed and the_Key = s)
+   --       or ( left_Key_is_already_pressed and the_Key = a)
+   --       or (right_Key_is_already_pressed and the_Key = d)
+   --     then
+   --        return;
+   --     end if;
+   --
+   --     case the_Key
+   --     is
+   --        when w  => Self.my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => Self.my_Client.pc_sprite_Id,  Direction => Forward,   On => True));
+   --        when s  => Self.my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => Self.my_Client.pc_sprite_Id,  Direction => Backward,  On => True));
+   --        when a  => Self.my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => Self.my_Client.pc_sprite_Id,  Direction => Left,      On => True));
+   --        when d  => Self.my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => Self.my_Client.pc_sprite_Id,  Direction => Right,     On => True));
+   --        when others => null;
+   --     end case;
+   --
+   --     case the_Key
+   --     is
+   --        when w  =>    up_Key_is_already_pressed := True;
+   --        when s  =>  down_Key_is_already_pressed := True;
+   --        when a  =>  left_Key_is_already_pressed := True;
+   --        when d  => right_Key_is_already_pressed := True;
+   --        when others => null;
+   --     end case;
+   --
+   --  end respond;
+   --
+   --
+   --
+   --  overriding
+   --  procedure respond (Self : in out key_release_Response;   to_Event : in lace.Event.item'Class)
+   --  is
+   --     use arcana.Server,
+   --         gel.Keyboard;
+   --
+   --     the_Event :          gel.Keyboard.key_release_Event renames gel.Keyboard.key_release_Event (to_Event);
+   --     the_Key   : constant gel.keyboard.Key                    := the_Event.modified_Key.Key;
+   --  begin
+   --     case the_Key
+   --     is
+   --        when w  => Self.my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => Self.my_Client.pc_sprite_Id,  Direction => Forward,   On => False));
+   --        when s  => Self.my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => Self.my_Client.pc_sprite_Id,  Direction => Backward,  On => False));
+   --        when a  => Self.my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => Self.my_Client.pc_sprite_Id,  Direction => Left,      On => False));
+   --        when d  => Self.my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => Self.my_Client.pc_sprite_Id,  Direction => Right,     On => False));
+   --        when others => null;
+   --     end case;
+   --
+   --     case the_Key
+   --     is
+   --        when w  =>    up_Key_is_already_pressed := False;
+   --        when s  =>  down_Key_is_already_pressed := False;
+   --        when a  =>  left_Key_is_already_pressed := False;
+   --        when d  => right_Key_is_already_pressed := False;
+   --        when others => null;
+   --     end case;
+   --  end respond;
+   --
 
 
 
@@ -120,7 +235,7 @@ is
          --  Create a window with a size of 800 x 650.
          --
          gtk_new (Self.top_Window);
-         Self.top_Window.set_default_Size (800, 650);
+         Self.top_Window.set_default_Size (1920, 1080);
 
          --  Create a box to organize vertically the contents of the window.
          --
@@ -136,10 +251,10 @@ is
                               Padding => 10);
 
          Self.Name   := to_unbounded_String (Name);
-         Self.Applet := gel.Forge.new_gui_Applet (Named         => "Arcana",
-                                                  window_Width  => 800,
-                                                  window_Height => 650,
-                                                  space_Kind    => physics.Box2d);
+         Self.Applet := gel.Forge.new_client_Applet (Named         => "Arcana",
+                                                     window_Width  => 1920,
+                                                     window_Height => 1080,
+                                                     space_Kind    => physics.Box2d);
 
          Self.Box.pack_Start (gel.Window.gtk.view (Self.Applet.Window).GL_Area);
 
@@ -161,20 +276,22 @@ is
                   +gel.Keyboard.key_release_Event'Tag);
 
 
-         -- Ball
-         --
-         Self.Player := gel.Forge.new_circle_Sprite (in_World => Self.Applet.World,
-                                                     Site     => [0.0, 0.0],
-                                                     Mass     => 1.0,
-                                                     Bounce   => 1.0,
-                                                     Friction => 0.0,
-                                                     Radius   => 0.5,
-                                                     Color    => Grey,
-                                                     Texture  => openGL.to_Asset ("assets/opengl/texture/Face1.bmp"));
+         --  -- Ball
+         --  --
+         --  Self.Player := gel.Forge.new_circle_Sprite (in_World => Self.Applet.World,
+         --                                              Site     => [0.0, 0.0],
+         --                                              Mass     => 1.0,
+         --                                              Bounce   => 1.0,
+         --                                              Friction => 0.0,
+         --                                              Radius   => 0.5,
+         --                                              Color    => Grey,
+         --                                              Texture  => openGL.to_Asset ("assets/opengl/texture/Face1.bmp"));
 
-         Self.Applet.Camera.  Site_is ([0.0, 0.0, 20.0]);
-         Self.Applet.World.Gravity_is ([0.0, 0.0,  0.0]);
-         Self.Applet.World.add        (Self.Player);
+         Self.Applet.Camera.Site_is ([0.0, 0.0, 20.0]);
+
+         --  Self.Applet.enable_simple_Dolly (in_World => 1);
+         --  Self.Applet.World.Gravity_is ([0.0, 0.0,  0.0]);
+         --  Self.Applet.World.add        (Self.Player);
 
 
          -- Set the lights position.
@@ -182,7 +299,9 @@ is
          declare
             Light : openGL.Light.item := Self.Applet.Renderer.new_Light;
          begin
-            Light.Site_is ([0.0, -1000.0, 0.0]);
+            Light.Site_is                ([0.0, -1000.0, 0.0]);
+            Light.ambient_Coefficient_is (0.5);
+
             Self.Applet.Renderer.set (Light);
          end;
       end return;
@@ -221,47 +340,64 @@ is
 
 
 
+   overriding
+   procedure pc_sprite_Id_is (Self : in out Item;   Now : in gel.sprite_Id)
+   is
+   begin
+      Self.pc_sprite_Id := Now;
+   end pc_sprite_Id_is;
+
+
+
+   function pc_sprite_Id (Self : in Item) return gel.sprite_Id
+   is
+   begin
+      return Self.pc_sprite_Id;
+   end pc_sprite_Id;
+
+
+
    -------------
    -- Operations
    --
 
-   overriding
-   procedure register_Client (Self : in out Item;   other_Client : in Client.view)
-   is
-      use lace.Event.utility,
-          ada.Text_IO;
-   begin
-      lace.Event.utility.connect (the_Observer  => Self'unchecked_Access,
-                                  to_Subject    => other_Client.as_Subject,
-                                  with_Response => the_Response'Access,
-                                  to_Event_Kind => to_Kind (arcana.Client.Message'Tag));
-
-      put_Line (other_Client.Name & " is here.");
-   end register_Client;
-
-
-
-   overriding
-   procedure deregister_Client (Self : in out Item;   other_Client_as_Observer : in lace.Observer.view;
-                                                      other_Client_Name        : in String)
-   is
-      use lace.Event.utility,
-          ada.Text_IO;
-   begin
-      begin
-         Self.as_Subject.deregister (other_Client_as_Observer,
-                                     to_Kind (arcana.Client.Message'Tag));
-      exception
-         when constraint_Error =>
-            raise unknown_Client with "Other client not known. Deregister is not required.";
-      end;
-
-      Self.as_Observer.rid (the_Response'unchecked_Access,
-                            to_Kind (arcana.Client.Message'Tag),
-                            other_Client_Name);
-
-      put_Line (other_Client_Name & " leaves.");
-   end deregister_Client;
+   --  overriding
+   --  procedure register_Client (Self : in out Item;   other_Client : in Client.view)
+   --  is
+   --     use lace.Event.utility,
+   --         ada.Text_IO;
+   --  begin
+   --     lace.Event.utility.connect (the_Observer  => Self'unchecked_Access,
+   --                                 to_Subject    => other_Client.as_Subject,
+   --                                 with_Response => the_Response'Access,
+   --                                 to_Event_Kind => to_Kind (arcana.Client.Message'Tag));
+   --
+   --     put_Line (other_Client.Name & " is here.");
+   --  end register_Client;
+   --
+   --
+   --
+   --  overriding
+   --  procedure deregister_Client (Self : in out Item;   other_Client_as_Observer : in lace.Observer.view;
+   --                                                     other_Client_Name        : in String)
+   --  is
+   --     use lace.Event.utility,
+   --         ada.Text_IO;
+   --  begin
+   --     begin
+   --        Self.as_Subject.deregister (other_Client_as_Observer,
+   --                                    to_Kind (arcana.Client.Message'Tag));
+   --     exception
+   --        when constraint_Error =>
+   --           raise unknown_Client with "Other client not known. Deregister is not required.";
+   --     end;
+   --
+   --     Self.as_Observer.rid (the_Response'unchecked_Access,
+   --                           to_Kind (arcana.Client.Message'Tag),
+   --                           other_Client_Name);
+   --
+   --     put_Line (other_Client_Name & " leaves.");
+   --  end deregister_Client;
 
 
 
@@ -326,20 +462,38 @@ is
 
 
 
+   function client_World (Self : in Item) return gel.World.client.view
+   is
+   begin
+      return gel.World.client.view (Self.Applet.World (1));
+   end client_World;
+
+
+
    procedure start (Self : in out arcana.Client.local.item)
    is
-      use gel.Applet.gui_world,
+      use gel.Applet.client_world,
+          gel.Math,
           ada.Text_IO;
+
+      use type gel.Sprite.view,
+               gel.sprite_Id;
+
+      Cycle : Natural := 0;
+
    begin
+      log ("Registering client with server.");
+
       --------
       -- Setup
       --
       begin
-         arcana.Server.register (Self'unchecked_Access);   -- Register our client with the Server.
+         arcana.Server.register (Self'unchecked_Access);   -- Register our client with the server.
       exception
          when arcana.Server.Name_already_used =>
             put_Line (+Self.Name & " is already in use.");
             check_Server_lives.halt;
+            free (Self.Applet);
             return;
       end;
 
@@ -347,24 +501,26 @@ is
 
       check_Server_lives.start (Self'unchecked_Access);
 
-      declare
-         Peers : constant arcana.Client.views := arcana.Server.all_Clients;
-      begin
-         for i in Peers'Range
-         loop
-            if Self'unchecked_Access /= Peers (i)
-            then
-               begin
-                  Peers (i).register_Client (Self'unchecked_Access);    -- Register our client with all other clients.
-                  Self     .register_Client (Peers (i));                -- Register all other clients with our client.
-               exception
-                  when system.RPC.communication_Error
-                     | storage_Error =>
-                     null;     -- Peer (i) has died, so ignore it and do nothing.
-               end;
-            end if;
-         end loop;
-      end;
+      --  declare
+      --     Peers : constant arcana.Client.views := arcana.Server.all_Clients;
+      --  begin
+      --     for i in Peers'Range
+      --     loop
+      --        if Self'unchecked_Access /= Peers (i)
+      --        then
+      --           begin
+      --              Peers (i).register_Client (Self'unchecked_Access);    -- Register our client with all other clients.
+      --              Self     .register_Client (Peers (i));                -- Register all other clients with our client.
+      --           exception
+      --              when system.RPC.communication_Error
+      --                 | storage_Error =>
+      --                 null;     -- Peer (i) has died, so ignore it and do nothing.
+      --           end;
+      --        end if;
+      --     end loop;
+      --  end;
+
+      Self.Applet.client_World.is_a_Mirror (of_World => arcana.Server.World);
 
 
       ------------
@@ -372,8 +528,38 @@ is
       --
       while Self.Applet.is_open
       loop
+         Cycle := Cycle + 1;
+
+         if Cycle = 1500
+         then
+            null;
+            --  raise Constraint_Error with "cycle 500";
+         end if;
+
          Self.Applet.World.evolve;     -- Advance the world.
          Self.Applet.freshen;          -- Handle any new events and update the screen.
+
+
+         if    Self.pc_Sprite     = null
+           and Self.pc_sprite_Id /= gel.null_sprite_Id
+         then
+            begin
+               Self.pc_Sprite := Self.client_World.fetch_Sprite (Self.pc_sprite_Id);
+               --  Self.Applet.enable_following_Dolly (follow => Self.pc_Sprite);
+            exception
+               when constraint_Error =>
+                  log ("Warning: Unable to fetch PC sprite" & Self.pc_sprite_Id'Image & ".");
+            end;
+         end if;
+
+
+         if Self.pc_Sprite /= null
+         then
+            Self.Applet.Camera.Site_is (Self.pc_Sprite.Site + (0.0, 0.0, 30.0));
+            --  Self.Applet.Camera.Site_is (Self.pc_Sprite.Site +  Self.pc_Sprite.Spin * (0.0, 10.0, 30.0));
+            --  Self.Applet.Camera.Spin_is (Self.pc_Sprite.Spin);
+            --  log (Self.pc_Sprite.Spin'Image);
+         end if;
 
 
          declare
@@ -400,6 +586,8 @@ is
       -----------
       -- Shutdown
       --
+      arcana.Server.World.deregister (Self.Applet.client_World.all'Access);
+
       if    not Self.Server_has_shutdown
         and not Self.Server_is_dead
       then
@@ -410,37 +598,45 @@ is
                Self.Server_is_dead := True;
          end;
 
-         if not Self.Server_is_dead
-         then
-            declare
-               Peers : constant arcana.Client.views := arcana.Server.all_Clients;
-            begin
-               for i in Peers'Range
-               loop
-                  if Self'unchecked_Access /= Peers (i)
-                  then
-                     begin
-                        Peers (i).deregister_Client ( Self'unchecked_Access,   -- Deregister our client with every other client.
-                                                     +Self.Name);
-                     exception
-                        when system.RPC.communication_Error
-                           | storage_Error =>
-                           null;   -- Peer is dead, so do nothing.
-                     end;
-                  end if;
-               end loop;
-            end;
-         end if;
+         --  if not Self.Server_is_dead
+         --  then
+         --     declare
+         --        Peers : constant arcana.Client.views := arcana.Server.all_Clients;
+         --     begin
+         --        for i in Peers'Range
+         --        loop
+         --           if Self'unchecked_Access /= Peers (i)
+         --           then
+         --              begin
+         --                 Peers (i).deregister_Client ( Self'unchecked_Access,   -- Deregister our client with every other client.
+         --                                              +Self.Name);
+         --              exception
+         --                 when system.RPC.communication_Error
+         --                    | storage_Error =>
+         --                    null;   -- Peer is dead, so do nothing.
+         --              end;
+         --           end if;
+         --        end loop;
+         --     end;
+         --  end if;
       end if;
 
       check_Server_lives.halt;
       free (Self.Applet);
       lace.Event.utility.close;
+
+   exception
+      when others =>
+         check_Server_lives.halt;
+         free (Self.Applet);
+         lace.Event.utility.close;
+
+         raise;
    end start;
 
 
    -- 'last_chance_Handler' is commented out to avoid multiple definitions
-   --  of link symbols in 'build_All' test procedure (Tier 5).
+   --  of link symbols in 'build_All' test procedure (Lace Tier 5).
    --
 
    --  procedure last_chance_Handler (Msg  : in system.Address;

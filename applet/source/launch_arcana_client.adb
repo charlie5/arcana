@@ -24,6 +24,7 @@ begin
       return;
    end if;
 
+
    declare
       use arcana.Client.local;
 
@@ -34,9 +35,13 @@ begin
    end;
 
 
+   put_Line ("Closing client.");
+
+
 exception
    when E : others =>
-      lace.Event.utility.close;
+      --  free (the_Client.Applet);
+      --  lace.Event.utility.close;
 
       new_Line;
       put_Line ("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");

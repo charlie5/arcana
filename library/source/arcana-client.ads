@@ -1,4 +1,5 @@
 with
+     Gel,
      lace.Event,
      lace.Subject,
      lace.Observer;
@@ -22,10 +23,10 @@ is
    procedure Server_has_shutdown (Self : in out Item) is abstract;
    procedure ping                (Self : in     Item) is null;
 
-   procedure   register_Client   (Self : in out Item;   other_Client : in Client.view) is abstract;
-
-   procedure deregister_Client   (Self : in out Item;   other_Client_as_Observer : in lace.Observer.view;
-                                                        other_Client_Name        : in String) is abstract;
+   --  procedure   register_Client   (Self : in out Item;   other_Client : in Client.view) is abstract;
+   --
+   --  procedure deregister_Client   (Self : in out Item;   other_Client_as_Observer : in lace.Observer.view;
+   --                                                       other_Client_Name        : in String) is abstract;
    --
    -- Raises unknown_Client exception when the other_Client is unknown.
 
@@ -40,6 +41,11 @@ is
       end record;
 
    unknown_Client : exception;
+
+
+
+   procedure pc_sprite_Id_is (Self : in out Item;   Now : in gel.sprite_Id) is abstract;
+   function  pc_sprite_Id    (Self : in     Item)     return gel.sprite_Id  is abstract;
 
 
 end arcana.Client;

@@ -1,5 +1,8 @@
 with
-     arcana.Client;
+     arcana.Client,
+     gel.remote.World,
+     lace.Event;
+
 
 package arcana.Server
 --
@@ -17,6 +20,22 @@ is
    function  all_Clients return arcana.Client.views;
 
    procedure ping;
+   procedure start;
    procedure shutdown;
+
+
+   function World return gel.remote.World.view;
+
+
+
+   type move_Direction is (Forward, Backward, Left, Right);
+
+   type pc_move_Event is new lace.Event.item with
+      record
+         sprite_Id : gel.sprite_Id;
+         Direction : move_Direction;
+         On        : Boolean;            -- When On start moving, else stop moving.
+      end record;
+
 
 end arcana.Server;
