@@ -55,6 +55,37 @@ is
 
 
 
+   --- World lock.
+   --
+
+   protected world_Lock
+   is
+      entry acquire;
+      entry release;
+   private
+      Locked : Boolean := False;
+   end world_Lock;
+
+
+   protected body world_Lock
+   is
+      entry acquire when not Locked
+      is
+      begin
+         Locked := True;
+      end acquire;
+
+
+      entry release when Locked
+      is
+      begin
+         Locked := False;
+      end release;
+
+   end world_Lock;
+
+
+
    -----------
    --- Clients
    --
@@ -338,7 +369,7 @@ is
          --                                                                           Height   => 1.0,
          --                                                                           Color    => openGL.Palette.Grey,
          --                                                                           Texture  => openGL.to_Asset ("assets/human.png"));
-         the_Player : constant gel.Sprite.view := gel.Forge.new_circle_Sprite (in_World => the_World'Access,
+         the_Player : gel.Sprite.view := gel.Forge.new_circle_Sprite (in_World => the_World'Access,
                                                                                Site     => [0.0, 0.0],
                                                                                Mass     => 1.0,
                                                                                Bounce   => 1.0,
@@ -349,8 +380,18 @@ is
       begin
          log ("arcana.Server.register ~ the_Player.Visual.Model.Id:" & the_Player.Visual.Model.Id'Image);
 
+         world_Lock.acquire;
+         the_Player := gel.Forge.new_circle_Sprite (in_World => the_World'Access,
+                                                    Site     => [0.0, 0.0],
+                                                    Mass     => 1.0,
+                                                    Bounce   => 1.0,
+                                                    Friction => 1.0,
+                                                    Radius   => 0.5,
+                                                    Color    => Green,
+                                                    Texture  => openGL.to_Asset ("assets/human.png"));
          the_Player.user_Data_is (new sprite_Data);
          the_World.add (the_Player);
+         world_Lock.release;
 
          -- Emit a new 'add sprite' event for any interested observers.
          --
@@ -447,8 +488,10 @@ is
       end;
 
       safe_Clients.rid     (the_Client);
-      the_World   .rid     (the_World.fetch_Sprite (client_Info.pc_sprite_Id));
-      --  the_World   .destroy (the_World.fetch_Sprite (the_Client.pc_sprite_Id));
+
+      world_Lock.acquire;
+      the_World .rid (the_World.fetch_Sprite (client_Info.pc_sprite_Id));
+      world_Lock.release;
 
       lace.Event.utility.disconnect (the_Observer  => the_World.local_Observer,
                                      from_Subject  => client_Info.as_Subject,
