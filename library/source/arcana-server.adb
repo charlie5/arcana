@@ -3,8 +3,11 @@ with
      gel.Sprite,
      gel.Forge,
      gel.Events,
+     float_Math.Random,
 
      openGL.Palette,
+     openGL.IO,
+
      Physics,
 
      lace.Observer,
@@ -604,6 +607,48 @@ is
                                                    Texture  => openGL.to_Asset ("assets/tree7.png"));
       the_World.add (the_one_Tree);
 
+      --  log (openGL.IO.to_Image ("assets/terrain/trees.png")'Length (1)'Image);
+
+      declare
+         use openGL;
+
+         the_Trees   : constant openGL.Image    := openGL.IO.to_Image (openGL.to_Asset ("assets/terrain/trees.png"));
+         Count       :          Natural         := 0;
+         half_Width  : constant gel.Math.Real   := gel.Math.Real (the_Trees'Length (1)) / 2.0;
+         half_Height : constant gel.Math.Real   := gel.Math.Real (the_Trees'Length (2)) / 2.0;
+         Color       :          openGL.rgb_Color;
+      begin
+         for Row in the_Trees'Range (1)
+         loop
+            for Col in the_Trees'Range (2)
+            loop
+               Color := the_Trees (Row, Col);
+
+               if to_Color (Color) /= Black
+               then
+                  log ("Tree color:" & Color'Image);
+
+                  the_one_Tree := gel.Forge.new_circle_Sprite (in_World => the_World'Access,
+                                                               Site     => [gel.Math.Real (Col) - half_Width, -- + gel.Math.Random.random_Real (Lower => -0.25, Upper => 0.25),
+                                                                            gel.Math.Real (Row) - half_Height], --+ gel.Math.Random.random_Real (Lower => -0.25, Upper => 0.25)],
+                                                               Mass     => 0.0,
+                                                               Bounce   => 1.0,
+                                                               Friction => 1.0,
+                                                               Radius   => 0.5,
+                                                               Color    => Green,
+                                                               Texture  => openGL.to_Asset ("assets/tree7.png"));
+                  the_World.add (the_one_Tree);
+
+                  Count := Count + 1;
+               end if;
+            end loop;
+         end loop;
+
+         log ("Tree count:" & Count'Image);
+      end;
+
+
+
       --  while the_World.is_open
       loop
          --  -- Register new clients.
@@ -632,6 +677,8 @@ is
             then
                Each.Speed_is (  sprite_Data (Each.user_Data.all).Movement
                               * Each.Spin);
+               --  Each.apply_Force (  sprite_Data (Each.user_Data.all).Movement
+               --                    * Each.Spin);
             end if;
          end loop;
 
