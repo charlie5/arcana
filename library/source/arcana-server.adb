@@ -3,7 +3,7 @@ with
      gel.Sprite,
      gel.Forge,
      gel.Events,
-     --  float_Math.Random,
+     float_Math.Random,
 
      openGL.Palette,
      openGL.IO,
@@ -378,7 +378,7 @@ is
                                                                                Color    => Green,
                                                                                Texture  => openGL.to_Asset ("assets/human.png"));
       begin
-         log ("arcana.Server.register ~ the_Player.Visual.Model.Id:" & the_Player.Visual.Model.Id'Image);
+         --  log ("arcana.Server.register ~ the_Player.Visual.Model.Id:" & the_Player.Visual.Model.Id'Image);
 
          world_Lock.acquire;
          the_Player := gel.Forge.new_circle_Sprite (in_World => the_World'Access,
@@ -653,7 +653,8 @@ is
       --  log (openGL.IO.to_Image ("assets/terrain/trees.png")'Length (1)'Image);
 
       declare
-         use openGL;
+         use openGL,
+             gel.Math.Random;
 
          the_Trees   : constant openGL.Image    := openGL.IO.to_Image (openGL.to_Asset ("assets/terrain/trees.png"));
          Count       :          Natural         := 0;
@@ -669,14 +670,14 @@ is
 
                if to_Color (Color) /= Black
                then
-                  log ("Tree color:" & Color'Image);
+                  --  log ("Tree color:" & Color'Image);
 
                   the_one_Tree := gel.Forge.new_circle_Sprite (in_World => the_World'Access,
-                                                               Site     => [gel.Math.Real (Col) - half_Width, -- + gel.Math.Random.random_Real (Lower => -0.25, Upper => 0.25),
-                                                                            gel.Math.Real (Row) - half_Height], --+ gel.Math.Random.random_Real (Lower => -0.25, Upper => 0.25)],
+                                                               Site     => [gel.Math.Real (Col) - half_Width  + gel.Math.Random.random_Real (Lower => -0.25, Upper => 0.25),
+                                                                            gel.Math.Real (Row) - half_Height + gel.Math.Random.random_Real (Lower => -0.25, Upper => 0.25)],
                                                                Mass     => 0.0,
                                                                Bounce   => 1.0,
-                                                               Friction => 1.0,
+                                                               Friction => 0.0,
                                                                Radius   => 0.5,
                                                                Color    => Green,
                                                                Texture  => openGL.to_Asset ("assets/tree7.png"));
