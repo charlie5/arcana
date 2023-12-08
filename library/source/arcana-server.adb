@@ -714,6 +714,8 @@ is
          --  old_Clients.clear;
 
 
+         world_Lock.acquire;
+
          for Each of the_World.all_Sprites.fetch
          loop
             if Each.user_Data /= null
@@ -725,7 +727,13 @@ is
             end if;
          end loop;
 
-         the_World.evolve;     -- Advance the world in time.
+         world_Lock.release;
+
+
+         world_Lock.acquire;
+         the_World .evolve;     -- Advance the world in time.
+         world_Lock.release;
+
          delay Duration'Small * 10_000.0;   -- 1.0 / 1200.0;
       end loop;
    end start;
