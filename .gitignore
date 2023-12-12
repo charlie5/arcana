@@ -9,29 +9,29 @@
 *.deps
 *.bexch
 *.cgpr
+*~
 .clangd
 b__*
 
+callgrind.out.*
 
-applet/dsa/dsa
-applet/dsa/bin
+applet/game/distributed/bin
+applet/game/distributed/dsa
 
-launch_amud_server
-launch_amud_client
-launch_amud_fused
+applet/game/distributed/appimage/AppDir
+applet/game/distributed/appimage/AppDir-old
+applet/game/distributed/appimage/assets
+applet/game/distributed/appimage/client_tarball
+applet/game/distributed/appimage/client_tarball-old
+applet/game/distributed/client_tarball-old
+applet/game/distributed/test/wan_on_orth
+applet/game/distributed/client_tarball
+applet/game/distributed/client_tarball.tar.gz
+applet/game/distributed/appimage/client_partition
+applet/game/distributed/appimage/client_partition-x86_64.AppImage
 
-applet/distributed/bin
-applet/distributed/dsa
-
-applet/distributed/appimage/AppDir
-applet/distributed/appimage/AppDir-old
-applet/distributed/appimage/assets
-applet/distributed/appimage/client_tarball
-applet/distributed/appimage/client_tarball-old
-applet/distributed/client_tarball-old
-applet/distributed/test/wan_on_orth
-
-
+applet/game/distributed/test/lan/client_1/assets
+applet/game/distributed/test/lan/client_2/assets
 
 .clang-format
 
