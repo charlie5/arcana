@@ -15,9 +15,12 @@ with
      lace.Response,
      lace.Event.utility,
 
+     lace.Text.forge,
+
      system.RPC,
 
      ada.Exceptions,
+     ada.Calendar,
      ada.Strings.unbounded,
      ada.Text_IO;
 
@@ -309,18 +312,18 @@ is
       then
          case the_Event.Direction
          is
-            when Forward  => the_sprite_Data.Movement := the_sprite_Data.Movement + [0.0,  0.1, 0.0];
-            when Backward => the_sprite_Data.Movement := the_sprite_Data.Movement + [0.0, -0.1, 0.0];
-            when Left     => the_sprite_Data.Spin     := the_sprite_Data.Spin     + 5.0;
-            when Right    => the_sprite_Data.Spin     := the_sprite_Data.Spin     - 5.0;
+            when Forward  => the_sprite_Data.Movement := the_sprite_Data.Movement + [0.0,  4.0, 0.0];
+            when Backward => the_sprite_Data.Movement := the_sprite_Data.Movement + [0.0, -4.0, 0.0];
+            when Left     => the_sprite_Data.Spin     := the_sprite_Data.Spin     + 120.0;
+            when Right    => the_sprite_Data.Spin     := the_sprite_Data.Spin     - 120.0;
          end case;
       else
          case the_Event.Direction
          is
-            when Forward  => the_sprite_Data.Movement := the_sprite_Data.Movement + [ 0.0, -0.1, 0.0];
-            when Backward => the_sprite_Data.Movement := the_sprite_Data.Movement + [ 0.0,  0.1, 0.0];
-            when Left     => the_sprite_Data.Spin     := the_sprite_Data.Spin     - 5.0;
-            when Right    => the_sprite_Data.Spin     := the_sprite_Data.Spin     + 5.0;
+            when Forward  => the_sprite_Data.Movement := the_sprite_Data.Movement + [ 0.0, -4.0, 0.0];
+            when Backward => the_sprite_Data.Movement := the_sprite_Data.Movement + [ 0.0,  4.0, 0.0];
+            when Left     => the_sprite_Data.Spin     := the_sprite_Data.Spin     - 120.0;
+            when Right    => the_sprite_Data.Spin     := the_sprite_Data.Spin     + 120.0;
          end case;
       end if;
 
@@ -370,7 +373,7 @@ is
          --                                                                           Color    => openGL.Palette.Grey,
          --                                                                           Texture  => openGL.to_Asset ("assets/human.png"));
          the_Player : gel.Sprite.view := gel.Forge.new_circle_Sprite (in_World => the_World'Access,
-                                                                               Site     => [0.0, 0.0],
+                                                                               Site     => [0.0, 0.0, 0.0],
                                                                                Mass     => 1.0,
                                                                                Bounce   => 1.0,
                                                                                Friction => 1.0,
@@ -382,7 +385,7 @@ is
 
          world_Lock.acquire;
          the_Player := gel.Forge.new_circle_Sprite (in_World => the_World'Access,
-                                                    Site     => [0.0, 0.0],
+                                                    Site     => [0.0, 0.0, 0.0],
                                                     Mass     => 1.0,
                                                     Bounce   => 1.0,
                                                     Friction => 1.0,
@@ -623,8 +626,78 @@ is
 
 
 
-   the_one_Tree : gel.Sprite.view;
 
+
+   ------------------
+   --- Chat messages.
+   --
+
+   type client_message_Pair is
+      record
+         Client  : arcana.Client.view;
+         Message : lace.Text.item_256;
+      end record;
+
+   type client_message_Pairs is array (Positive range <>) of client_message_Pair;
+
+
+
+   protected chat_Messages
+   is
+      procedure add   (From     : in Client.view;
+                       Message  : in String);
+
+      procedure fetch (the_Messages : out client_message_Pairs;
+                       the_Count    : out Natural);
+
+   private
+      Messages : client_message_Pairs (1 .. 50);
+      Count    : Natural := 0;
+   end chat_Messages;
+
+
+   protected body chat_Messages
+   is
+      procedure add   (From     : in Client.view;
+                       Message  : in String)
+      is
+         use lace.Text.forge;
+      begin
+         Count := Count + 1;
+         Messages (Count) := (Client => From,
+                              Message => to_Text_256 (Message));
+      end add;
+
+
+      procedure fetch (the_Messages : out client_message_Pairs;
+                       the_Count    : out Natural)
+      is
+      begin
+         the_Messages (1 .. Count) := Messages (1 .. Count);
+         the_Count                 := Count;
+         Count                     := 0;
+      end fetch;
+
+   end chat_Messages;
+
+
+
+   procedure add_Chat (From    : in Client.view;
+                       Message : in String)
+   is
+   begin
+      chat_Messages.add (From    => From,
+                         Message => Message);
+   end add_Chat;
+
+
+
+
+   ---------
+   --- Start
+   --
+
+   the_one_Tree : gel.Sprite.view;
 
 
    procedure start
@@ -641,16 +714,18 @@ is
       -- The One Tree.
       --
       the_one_Tree := gel.Forge.new_circle_Sprite (in_World => the_World'Access,
-                                                   Site     => [0.0, 0.0],
+                                                   Site     => [0.0, 0.0, 0.0],
                                                    Mass     => 0.0,
                                                    Bounce   => 1.0,
-                                                   Friction => 1.0,
+                                                   Friction => 0.0,
                                                    Radius   => 0.5,
                                                    Color    => Green,
                                                    Texture  => openGL.to_Asset ("assets/tree7.png"));
+      log (the_one_Tree.Site'Image);
+
       the_World.add (the_one_Tree);
 
-      --  log (openGL.IO.to_Image ("assets/terrain/trees.png")'Length (1)'Image);
+      --  log (openGL.IO.to_Image (openGL.to_Asset ("assets/terrain/trees.png"))'Length (1)'Image);
 
       declare
          use openGL,
@@ -674,7 +749,8 @@ is
 
                   the_one_Tree := gel.Forge.new_circle_Sprite (in_World => the_World'Access,
                                                                Site     => [gel.Math.Real (Col) - half_Width  + gel.Math.Random.random_Real (Lower => -0.25, Upper => 0.25),
-                                                                            gel.Math.Real (Row) - half_Height + gel.Math.Random.random_Real (Lower => -0.25, Upper => 0.25)],
+                                                                            gel.Math.Real (Row) - half_Height + gel.Math.Random.random_Real (Lower => -0.25, Upper => 0.25),
+                                                                            gel.Math.Random.random_Real (Lower => -0.01, Upper => 0.01)],     -- Prevent openGL from flipping visuals due to being all at same 'Z' position.
                                                                Mass     => 0.0,
                                                                Bounce   => 1.0,
                                                                Friction => 0.0,
@@ -692,51 +768,96 @@ is
       end;
 
 
+      declare
+         use ada.Calendar;
 
-      --  while the_World.is_open
-      loop
-         --  -- Register new clients.
-         --  --
-         --  for Each of new_Clients.fetch
-         --  loop
-         --     register_new (Each);
-         --  end loop;
-         --
-         --  new_Clients.clear;
+         next_evolve_Time   : ada.Calendar.Time := ada.Calendar.Clock;
+         next_evolve_Report : ada.Calendar.Time := next_evolve_Time;
+         evolve_Count       : Natural           := 0;
 
-
-         --  -- Deregister old clients.
-         --  --
-         --  for Each of old_Clients.fetch
-         --  loop
-         --     deregister_old (Each);
-         --  end loop;
-         --
-         --  old_Clients.clear;
-
-
-         world_Lock.acquire;
-
-         for Each of the_World.all_Sprites.fetch
+      begin
+         --  while the_World.is_open
          loop
-            if Each.user_Data /= null
-            then
-               Each.Speed_is (  sprite_Data (Each.user_Data.all).Movement
-                              * Each.Spin);
-               --  Each.apply_Force (  sprite_Data (Each.user_Data.all).Movement
-               --                    * Each.Spin);
-            end if;
+            --  -- Register new clients.
+            --  --
+            --  for Each of new_Clients.fetch
+            --  loop
+            --     register_new (Each);
+            --  end loop;
+            --
+            --  new_Clients.clear;
+
+
+            --  -- Deregister old clients.
+            --  --
+            --  for Each of old_Clients.fetch
+            --  loop
+            --     deregister_old (Each);
+            --  end loop;
+            --
+            --  old_Clients.clear;
+
+            evolve_Count := evolve_Count + 1;
+
+            declare
+               Now : constant ada.Calendar.TIme := ada.Calendar.Clock;
+            begin
+               if Now > next_evolve_Report
+               then
+                  log ("Server ~ Evolves per second:" & evolve_Count'Image);
+                  next_evolve_Report := next_evolve_Report + 1.0;
+                  evolve_Count             := 0;
+               end if;
+            end;
+
+
+            world_Lock.acquire;
+
+            for Each of the_World.all_Sprites.fetch
+            loop
+               if Each.user_Data /= null
+               then
+                  Each.Speed_is (  sprite_Data (Each.user_Data.all).Movement
+                                 * Each.Spin);
+                  --  Each.apply_Force (  sprite_Data (Each.user_Data.all).Movement
+                  --                    * Each.Spin);
+               end if;
+            end loop;
+
+            world_Lock.release;
+
+
+            world_Lock.acquire;
+            the_World .evolve;     -- Advance the world in time.
+            world_Lock.release;
+
+
+            -- Send chat messages
+            --
+            declare
+               use lace.Text;
+
+               Messages : client_message_Pairs (1 .. 50);
+               Count    : Natural;
+            begin
+               chat_Messages.fetch (Messages,
+                                    Count);
+               for i in 1 .. Count
+               loop
+                  for Each of all_Clients
+                  loop
+                     Each.receive_Chat (Messages (i).Client.Name
+                                        & " says '"
+                                        & to_String (Messages (i).Message)
+                                        & "'.");
+                  end loop;
+               end loop;
+            end;
+
+            delay until next_evolve_Time;
+            next_evolve_Time := next_evolve_Time + 1.0 / (1.0 * 60.0);
          end loop;
-
-         world_Lock.release;
-
-
-         world_Lock.acquire;
-         the_World .evolve;     -- Advance the world in time.
-         world_Lock.release;
-
-         delay Duration'Small * 10_000.0;   -- 1.0 / 1200.0;
-      end loop;
+      end;
    end start;
 
 

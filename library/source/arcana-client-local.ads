@@ -12,7 +12,10 @@ with
      gel.Sprite,
 
      gtk.Box,
+     gtk.gEntry,
      gtk.Label,
+     gtk.scrolled_Window,
+     gtk.Text_View,
      gtk.Window,
 
      ada.Strings.unbounded;
@@ -28,6 +31,10 @@ is
                         and arcana.Client  .item with private;
 
    type View is access all Item'Class;
+
+
+   my_Client : View;
+
 
 
    -- Forge
@@ -67,6 +74,9 @@ is
 
    overriding
    function  pc_sprite_Id    (Self : in     Item)     return gel.sprite_Id;
+
+   overriding
+   procedure receive_Chat    (Self : in     Item;   Message : in String);
 
 
 
@@ -108,9 +118,12 @@ private
 
          -- GtkAda objects.
          --
-         top_Window : Gtk_Window;
-         Label      : Gtk_Label;
-         Box        : Gtk_Vbox;
+         top_Window    : gtk_Window;
+         gl_Box        : gtk_vBox;
+         chat_Entry    : gtk.gEntry.gtk_gEntry;
+         events_Text   : gtk.Text_View.gtk_Text_View;
+         events_Window : gtk.scrolled_Window.gtk_scrolled_Window;
+
 
          -- Gel objects.
          --

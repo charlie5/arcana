@@ -47,5 +47,7 @@ is
    procedure pc_sprite_Id_is (Self : in out Item;   Now : in gel.sprite_Id) is abstract;
    function  pc_sprite_Id    (Self : in     Item)     return gel.sprite_Id  is abstract;
 
+   procedure receive_Chat    (Self : in     Item;   Message : in String)    is abstract;
+
 
 end arcana.Client;

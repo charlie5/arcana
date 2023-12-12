@@ -38,4 +38,8 @@ is
       end record;
 
 
+   procedure add_Chat (From    : in Client.view;
+                       Message : in String);
+
+
 end arcana.Server;

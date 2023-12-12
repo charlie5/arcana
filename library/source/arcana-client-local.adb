@@ -3,6 +3,7 @@ with
 
      lace.Observer,
      lace.Event.utility,
+     lace.Text.forge,
 
      gel.Forge,
      gel.Window.setup,
@@ -15,10 +16,31 @@ with
      openGL.Palette,
      openGL.Light,
 
+     glib,
+     glib.Error,
+     glib.Object,
+
+     gtk.Adjustment,
+     gtk.Box,
+     gtk.Button,
+     gtk.Editable,
+     gtk.gEntry,
+     gtk.Grid,
+     gtk.Frame,
      gtk.Main,
+     gtk.radio_Button,
+     gtk.spin_Button,
+     gtk.Text_Buffer,
+     gtk.Text_View,
+     gtk.Toggle_Button,
+     gtk.Label,
+     gtk.Widget,
+     gtkAda.Builder,
 
      system.RPC,
-     --  ada.Tags,
+
+     ada.Calendar,
+     ada.Characters.latin_1,
      ada.Exceptions,
      ada.Text_IO;
 
@@ -27,6 +49,35 @@ pragma Unreferenced (gel.Window.setup);
 
 package body arcana.Client.local
 is
+   use glib,
+       glib.Error,
+       glib.Object,
+
+       gtk.Box,
+       gtk.Button,
+       gtk.GEntry,
+       gtk.Grid,
+       gtk.Editable,
+       gtk.Frame,
+       gtk.Label,
+       gtk.spin_Button,
+       gtk.scrolled_Window,
+       gtk.radio_Button,
+       gtk.Text_Buffer,
+       gtk.Text_View,
+       gtk.Toggle_Button,
+
+       --  Common,
+       gtkAda.Builder,
+
+       ada.Text_IO;
+
+
+   default_Filename : constant String := "./glade/arcana-client.glade";
+   --
+   --  This is the file from which we'll read our UI description.
+
+
    ----------
    -- Utility
    --
@@ -37,6 +88,179 @@ is
 
    procedure log (Message : in String := "")
                   renames ada.Text_IO.put_Line;
+
+
+
+   -------
+   --- Gtk
+   --
+
+   --  top_Grid : gtk.Grid.gtk_Grid;
+   --  gl_Box   : gtk.Box.gtk_Box;
+
+
+
+   procedure on_Chat_activated (Self : access Gtk_Entry_Record'Class)
+   is
+      Text : constant String := get_Chars (Self, 0);
+   begin
+      Self.delete_Text (0);
+      arcana.Server.add_Chat (from    => my_Client.all'Access,
+                              Message => Text);
+
+      --  the_PC.Name_is (name_Entry.get_Text);
+   end on_Chat_activated;
+
+
+
+
+   procedure setup_Gtk (Self : in out Client.local.item)
+   is
+      use gtk.Widget,
+          gtkAda.Builder;
+
+      Builder :         gtkAda_Builder;
+      Error   : aliased gError;
+   begin
+      --  gtk.Main.init;
+
+      --  Create a new Gtkada_Builder object.
+      --
+      gtk_New (Builder);
+
+      --  Read in our XML file.
+      --
+      if Builder.add_from_File (default_Filename,
+                                Error'Access) = 0
+      then
+         put_Line ("Error [Builder.add_from_File]: "
+                   & get_Message (Error));
+         Error_free (Error);
+      end if;
+
+
+      -- Set our widgets.
+      --
+
+      --  top_Grid := gtk_Grid (Builder.get_Object (Name =>       "top_Grid"));
+      --  gl_Box   := gtk_Box  (Builder.get_Object (Name =>       "gl_Box"));
+
+
+      --  name_Entry         := gtk_gEntry (Builder.get_Object (Name =>       "name_Entry"));
+      --  appearance_Entry   := gtk_gEntry (Builder.get_Object (Name => "appearance_Entry"));
+      --
+      --  dwarf_Button       := gtk_radio_Button (Builder.get_Object (Name =>  "dwarf_Button"));
+      --  elf_Button         := gtk_radio_Button (Builder.get_Object (Name =>    "elf_Button"));
+      --  goblin_Button      := gtk_radio_Button (Builder.get_Object (Name => "goblin_Button"));
+      --  hobbit_Button      := gtk_radio_Button (Builder.get_Object (Name => "hobbit_Button"));
+      --  man_Button         := gtk_radio_Button (Builder.get_Object (Name =>    "man_Button"));
+      --
+      --  avail_points_Label := gtk_Label (Builder.get_Object (Name => "avail_points_Label"));
+      --  total_points_Label := gtk_Label (Builder.get_Object (Name => "total_points_Label"));
+      --
+      --  brawn_Spinner := gtk_Spin_Button (Builder.get_Object (Name => "brawn_Spinner"));
+      --  wit_Spinner   := gtk_Spin_Button (Builder.get_Object (Name =>   "wit_Spinner"));
+      --  deft_Spinner  := gtk_Spin_Button (Builder.get_Object (Name =>  "deft_Spinner"));
+      --  grit_Spinner  := gtk_Spin_Button (Builder.get_Object (Name =>  "grit_Spinner"));
+      --  will_Spinner  := gtk_Spin_Button (Builder.get_Object (Name =>  "will_Spinner"));
+      --  agile_Spinner := gtk_Spin_Button (Builder.get_Object (Name => "agile_Spinner"));
+      --
+      --  hit_points_Label     := gtk_Label (Builder.get_Object (Name =>     "hit_points_Label"));
+      --  fatigue_points_Label := gtk_Label (Builder.get_Object (Name => "fatigue_points_Label"));
+      --  perception_Label     := gtk_Label (Builder.get_Object (Name =>     "perception_Label"));
+      --
+      --  swing_damage_Label   := gtk_Label (Builder.get_Object (Name =>   "swing_damage_Label"));
+      --  thrust_damage_Label  := gtk_Label (Builder.get_Object (Name =>  "thrust_damage_Label"));
+      --
+      --  none_encumbrance_Label    := gtk_Label (Builder.get_Object (Name =>    "none_encumbrance_Label"));
+      --  light_encumbrance_Label   := gtk_Label (Builder.get_Object (Name =>   "light_encumbrance_Label"));
+      --  medium_encumbrance_Label  := gtk_Label (Builder.get_Object (Name =>  "medium_encumbrance_Label"));
+      --  heavy_encumbrance_Label   := gtk_Label (Builder.get_Object (Name =>   "heavy_encumbrance_Label"));
+      --  maximum_encumbrance_Label := gtk_Label (Builder.get_Object (Name => "maximum_encumbrance_Label"));
+      --
+      --  none_move_Label    := gtk_Label (Builder.get_Object (Name => "none_move_Label"));
+      --  light_move_Label   := gtk_Label (Builder.get_Object (Name => "light_move_Label"));
+      --  medium_move_Label  := gtk_Label (Builder.get_Object (Name => "medium_move_Label"));
+      --  heavy_move_Label   := gtk_Label (Builder.get_Object (Name => "heavy_move_Label"));
+      --  maximum_move_Label := gtk_Label (Builder.get_Object (Name => "maximum_move_Label"));
+      --
+      --  none_dodge_Label    := gtk_Label (Builder.get_Object (Name => "none_dodge_Label"));
+      --  light_dodge_Label   := gtk_Label (Builder.get_Object (Name => "light_dodge_Label"));
+      --  medium_dodge_Label  := gtk_Label (Builder.get_Object (Name => "medium_dodge_Label"));
+      --  heavy_dodge_Label   := gtk_Label (Builder.get_Object (Name => "heavy_dodge_Label"));
+      --  maximum_dodge_Label := gtk_Label (Builder.get_Object (Name => "maximum_dodge_Label"));
+
+
+      -- Set up events.
+      --
+      --  on_Changed (+name_Entry,       call =>       on_Name_changed'Access);
+      --  on_Changed (+appearance_Entry, call => on_Appearance_changed'Access);
+
+      --  dwarf_Button .on_Toggled ( on_dwarf_Race_selected'Access);
+      --  elf_Button   .on_Toggled (   on_elf_Race_selected'Access);
+      --  goblin_Button.on_Toggled (on_goblin_Race_selected'Access);
+      --  hobbit_Button.on_Toggled (on_hobbit_Race_selected'Access);
+      --  man_Button   .on_Toggled (   on_man_Race_selected'Access);
+      --
+      --  brawn_Spinner.on_Value_changed (on_Brawn_changed'Access);
+      --  grit_Spinner .on_Value_changed (on_Grit_changed 'Access);
+      --  wit_Spinner  .on_Value_changed (on_Wit_changed  'Access);
+      --  will_Spinner .on_Value_changed (on_Will_changed 'Access);
+      --  deft_Spinner .on_Value_changed (on_Deft_changed 'Access);
+      --  agile_Spinner.on_Value_changed (on_Agile_changed'Access);
+
+
+      --  Do the necessary event connections.
+      --
+      --  register_Handler
+      --    (Builder      => Builder,
+      --     Handler_Name => "on_btn_concatenate_clicked",
+      --     Handler      => On_Btn_Concatenate_Clicked'Access);
+      --
+      --  register_Handler
+      --    (Builder      => Builder,
+      --     Handler_Name => "on_btn_console_greeting_clicked",
+      --     Handler      => On_Btn_Console_Greeting_Clicked'Access);
+      --
+      --  register_Handler
+      --    (Builder      => Builder,
+      --     Handler_Name => "on_window1_delete_event",
+      --     Handler      => On_Window1_Delete_Event'Access);
+      --
+      --  register_Handler
+      --    (Builder      => Builder,
+      --     Handler_Name => "on_Top_destroy",
+      --     Handler      => on_Top_destroy'Access);
+      --
+      --  register_Handler
+      --    (Builder      => Builder,
+      --     Handler_Name => "on_print_to_console",
+      --     Handler      => On_Print_To_Console'Access);
+
+      --  Find our main window, then display it and all of its children.
+      --
+      Self.top_Window    := gtk_Window          (Builder.get_Object ("Top"));
+      Self.gl_Box        := gtk_Box             (Builder.get_Object ("gl_Box"));
+      Self.chat_Entry    := gtk_Entry           (Builder.get_Object ("chat_Entry"));
+      Self.events_Text   := gtk_Text_View       (Builder.get_Object ("events_Text"));
+      Self.events_Window := gtk_scrolled_Window (Builder.get_Object ("events_Window"));
+
+      Self.events_Text.Set_Size_Request (Width => -1,
+                                         Height => 100);
+
+      do_Connect (Builder);
+
+      -- Set up events.
+      --
+      --  on_Changed (+Self.chat_Entry,       call =>       on_Name_changed'Access);
+      --  on_Activate (+Self.chat_Entry,       call =>       on_Name_changed'Access);
+
+      Self.chat_Entry.on_Activate (call => on_Chat_activated'Access);
+
+      Self.top_Window.show_All;
+   end setup_Gtk;
+
+
 
 
    --------------
@@ -232,23 +456,26 @@ is
          --- Setup GtkAda.
          --
 
+         setup_Gtk (Self);
+
          --  Create a window with a size of 800 x 650.
          --
-         gtk_new (Self.top_Window);
+         --  gtk_new (Self.top_Window);
          Self.top_Window.set_default_Size (1920, 1080);
 
-         --  Create a box to organize vertically the contents of the window.
+         --  Create a gl_Box to organize vertically the contents of the window.
          --
-         gtk_New_vBox        (Self.Box);
-         Self.top_Window.add (Self.Box);
+         --  gtk_New_vBox        (Self.Box);
+         --  Self.top_Window.add (Self.gl_Box);
 
          --  Add a label.
          --
-         gtk_new             (Self.Label, "Hello Arcana.");
-         Self.Box.pack_Start (Self.Label,
-                              Expand  => False,
-                              Fill    => False,
-                              Padding => 10);
+         --  gtk_new             (Self.Label, "Hello Arcana.");
+         --  Self.gl_Box.pack_Start (Self.Label,
+         --  gl_Box.pack_Start (Self.Label,
+                              --  Expand  => False,
+                              --  Fill    => False,
+                              --  Padding => 10);
 
          Self.Name   := to_unbounded_String (Name);
          Self.Applet := gel.Forge.new_client_Applet (Named         => "Arcana",
@@ -256,7 +483,12 @@ is
                                                      window_Height => 1080,
                                                      space_Kind    => physics.Box2d);
 
-         Self.Box.pack_Start (gel.Window.gtk.view (Self.Applet.Window).GL_Area);
+         Self.gl_Box.pack_Start (gel.Window.gtk.view (Self.Applet.Window).GL_Area);
+
+         --  gel.Window.gtk.view (Self.Applet.Window).GL_Area.set_can_Focus (True);
+
+         --  top_Grid.attach (gel.Window.gtk.view (Self.Applet.Window).GL_Area, 1, 1);
+         --  gl_Box.pack_Start (gel.Window.gtk.view (Self.Applet.Window).GL_Area);
 
          --  Show the window.
          --
@@ -349,6 +581,7 @@ is
 
 
 
+   overriding
    function pc_sprite_Id (Self : in Item) return gel.sprite_Id
    is
    begin
@@ -470,6 +703,62 @@ is
 
 
 
+
+   -----------------
+   --- Chat messages
+   --
+
+   protected chat_Messages
+   is
+      procedure add   (Message  : in String);
+
+      procedure fetch (the_Messages : out lace.Text.items_256;
+                       the_Count    : out Natural);
+
+   private
+      Messages : lace.Text.items_256 (1 .. 50);
+      Count    : Natural := 0;
+   end chat_Messages;
+
+
+   protected body chat_Messages
+   is
+      procedure add (Message : in String)
+      is
+         use lace.Text.forge;
+      begin
+         Count := Count + 1;
+         Messages (Count) := to_Text_256 (Message);
+      end add;
+
+
+      procedure fetch (the_Messages : out lace.Text.items_256;
+                       the_Count    : out Natural)
+      is
+      begin
+         the_Messages (1 .. Count) := Messages (1 .. Count);
+         the_Count                 := Count;
+         Count                     := 0;
+      end fetch;
+
+   end chat_Messages;
+
+
+
+   overriding
+   procedure receive_Chat (Self : in Item;   Message : in String)
+   is
+   begin
+      chat_Messages.add (Message);
+   end receive_Chat;
+
+
+
+
+   ---------
+   --- Start
+   --
+
    procedure start (Self : in out arcana.Client.local.item)
    is
       use gel.Applet.client_world,
@@ -526,61 +815,107 @@ is
       ------------
       -- Main Loop
       --
-      while Self.Applet.is_open
-      loop
-         Cycle := Cycle + 1;
+      declare
+         use ada.Calendar;
 
-         if Cycle = 1500
-         then
-            null;
-            --  raise Constraint_Error with "cycle 500";
-         end if;
+         next_evolve_Time   : ada.Calendar.Time := ada.Calendar.Clock;
+         next_evolve_Report : ada.Calendar.Time := next_evolve_Time;
+         evolve_Count       : Natural           := 0;
 
-         Self.Applet.World.evolve;     -- Advance the world.
-         Self.Applet.freshen;          -- Handle any new events and update the screen.
+      begin
+         while Self.Applet.is_open
+         loop
+            Cycle := Cycle + 1;
+
+            if Cycle = 1500
+            then
+               null;
+               --  raise Constraint_Error with "cycle 500";
+            end if;
 
 
-         if    Self.pc_Sprite     = null
-           and Self.pc_sprite_Id /= gel.null_sprite_Id
-         then
+
+            evolve_Count := evolve_Count + 1;
+
+            declare
+               Now : constant ada.Calendar.TIme := ada.Calendar.Clock;
             begin
-               Self.pc_Sprite := Self.client_World.fetch_Sprite (Self.pc_sprite_Id);
-               --  Self.Applet.enable_following_Dolly (follow => Self.pc_Sprite);
-            exception
-               when constraint_Error =>
-                  log ("Warning: Unable to fetch PC sprite" & Self.pc_sprite_Id'Image & ".");
+               if Now > next_evolve_Report
+               then
+                  log ("                                               Client ~ Evolves per second:" & evolve_Count'Image);
+                  next_evolve_Report := next_evolve_Report + 1.0;
+                  evolve_Count       := 0;
+               end if;
             end;
-         end if;
 
 
-         if Self.pc_Sprite /= null
-         then
-            Self.Applet.Camera.Site_is (Self.pc_Sprite.Site + (0.0, 0.0, 30.0));
-            --  Self.Applet.Camera.Site_is (Self.pc_Sprite.Site +  Self.pc_Sprite.Spin * (0.0, 10.0, 30.0));
-            --  Self.Applet.Camera.Spin_is (Self.pc_Sprite.Spin);
-            --  log (Self.pc_Sprite.Spin'Image);
-         end if;
+
+            --  Self.Applet.World.evolve;     -- Advance the world.
+            Self.Applet.freshen;          -- Evolve the world, handle new events and update the screen.
 
 
-         declare
-            procedure broadcast (the_Text : in String)
-            is
-               the_Message : constant arcana.Client.Message := (Length (Self.Name) + 2 + the_Text'Length,
-                                                               +Self.Name & ": " & the_Text);
+            if    Self.pc_Sprite     = null
+              and Self.pc_sprite_Id /= gel.null_sprite_Id
+            then
+               begin
+                  Self.pc_Sprite := Self.client_World.fetch_Sprite (Self.pc_sprite_Id);
+                  --  Self.Applet.enable_following_Dolly (follow => Self.pc_Sprite);
+               exception
+                  when constraint_Error =>
+                     log ("Warning: Unable to fetch PC sprite" & Self.pc_sprite_Id'Image & ".");
+               end;
+            end if;
+
+
+            if Self.pc_Sprite /= null
+            then
+               Self.Applet.Camera.Site_is (Self.pc_Sprite.Site + (0.0, 0.0, 30.0));
+               --  Self.Applet.Camera.Site_is (Self.pc_Sprite.Site +  Self.pc_Sprite.Spin * (0.0, 10.0, 30.0));
+               --  Self.Applet.Camera.Spin_is (Self.pc_Sprite.Spin);
+               --  log (Self.pc_Sprite.Spin'Image);
+            end if;
+
+
+
+            --- Chat messages.
+            --
+            declare
+               use lace.Text;
+
+               Messages : lace.Text.items_256 (1 .. 50);
+               Count    : Natural;
             begin
-               Self.emit (the_Message);
-            end broadcast;
+               chat_Messages.fetch (Messages, Count);
 
-            chat_Message : constant String := ""; -- get_Line;
-         begin
-            exit
-              when   Self.Server_has_shutdown
-              or     Self.Server_is_dead
-              or not Self.Applet.is_open;
+               for i in 1 .. Count
+               loop
+                  Self.events_Text.get_Buffer.insert_at_Cursor (  to_String (Messages (i))
+                                                                  & ada.Characters.latin_1.LF);
+               end loop;
 
-            --  broadcast (chat_Message);
-         end;
-      end loop;
+               if Count > 0
+               then
+                  declare
+                     Adjust : constant gtk.Adjustment.gtk_Adjustment := Self.events_Window.get_vAdjustment;
+                  begin
+                     Adjust.set_Value (Adjust.get_Upper);
+                  end;
+               end if;
+            end;
+
+
+
+            --- Loop exit.
+            --
+            exit when Self.Server_has_shutdown
+              or      Self.Server_is_dead
+              or not  Self.Applet.is_open;
+
+
+            delay until next_evolve_Time;
+            next_evolve_Time := next_evolve_Time + 1.0 / (1.0 * 60.0);
+         end loop;
+      end;
 
 
       -----------
