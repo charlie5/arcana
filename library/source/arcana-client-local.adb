@@ -10,6 +10,8 @@ with
      gel.Window.gtk,
      gel.Keyboard,
      gel.World.client,
+     gel.Events,
+     gel.remote.World,
 
      Physics,
 
@@ -267,25 +269,8 @@ is
    --- Gel Events
    --
 
-   type Show is new lace.Response.item with null record;
-
-   -- Response is to display the arcana message on the users console.
+   --- Key presses.
    --
-   overriding
-   procedure respond (Self : in out Show;   to_Event : in lace.Event.item'Class)
-   is
-      pragma Unreferenced (Self);
-      use ada.Text_IO;
-
-      the_Message : constant Message := Message (to_Event);
-   begin
-      put_Line (the_Message.Text (1 .. the_Message.Length));
-   end respond;
-
-   the_Response : aliased arcana.Client.local.show;
-
-
-
 
    --- Guards against key repeats.
    --
@@ -437,6 +422,61 @@ is
    --
 
 
+   type Sprite_clicked_Response is new lace.Response.item with
+      record
+         Sprite : gel.Sprite.view;
+      end record;
+
+   type Sprite_clicked_Response_view is access all Sprite_clicked_Response;
+
+
+
+   overriding
+   procedure respond (Self : in out Sprite_clicked_Response;  to_Event : in lace.Event.Item'Class)
+   is
+   begin
+      log ("*********************************************************************** Sprite '" & Self.Sprite.Name & "' clicked ...");
+   end respond;
+
+
+   --  the_Sprite_clicked_Response : aliased Sprite_clicked_Response;
+
+
+
+
+   type Sprite_added_Response is new lace.Response.item with
+      record
+         Sprite : gel.Sprite.view;
+      end record;
+
+   type Sprite_added_Response_view is access all Sprite_added_Response;
+
+
+
+   overriding
+   procedure respond (Self : in out Sprite_added_Response;  to_Event : in lace.Event.Item'Class)
+   is
+      use lace.Event.utility;
+
+      the_Event    : gel.Remote.World.sprite_added_Event := gel.Remote.World.sprite_added_Event (to_Event);
+      the_Sprite   : gel.Sprite.view                     := my_Client.Applet.World.fetch_Sprite (the_Event.Sprite);
+      new_Response : Sprite_clicked_Response_view        := new Sprite_clicked_Response;
+   begin
+      log ("LLL " & the_Event.Sprite'Image);
+      log ("ADDED ****************************  Sprite '" & the_Sprite.Name & "' added ...");
+
+      new_Response.Sprite := the_Sprite;
+
+      connect (the_Observer  =>  my_Client.Applet.local_Observer,
+               to_Subject    =>  lace.Subject .view (the_Sprite),
+               with_Response =>  lace.Response.view (new_Response),
+               to_Event_Kind => +gel.Events.sprite_click_down_Event'Tag);
+   end respond;
+
+
+   the_Sprite_added_Response : aliased Sprite_added_Response;
+
+
 
 
    --------
@@ -507,17 +547,12 @@ is
                    Self.my_key_release_Response'unchecked_Access,
                   +gel.Keyboard.key_release_Event'Tag);
 
+         connect ( Self.Applet.local_Observer,
+                   Self.client_World.all'Access,
+                   the_Sprite_added_Response'unchecked_Access,
+                  +gel.remote.World.sprite_added_Event'Tag);
 
-         --  -- Ball
-         --  --
-         --  Self.Player := gel.Forge.new_circle_Sprite (in_World => Self.Applet.World,
-         --                                              Site     => [0.0, 0.0],
-         --                                              Mass     => 1.0,
-         --                                              Bounce   => 1.0,
-         --                                              Friction => 0.0,
-         --                                              Radius   => 0.5,
-         --                                              Color    => Grey,
-         --                                              Texture  => openGL.to_Asset ("assets/opengl/texture/Face1.bmp"));
+
 
          Self.Applet.Camera.Site_is ([0.0, 0.0, 20.0]);
 
@@ -755,6 +790,25 @@ is
 
 
 
+   type retreat_Sprite is new lace.Response.item with
+      record
+         Sprite : gel.Sprite.view;
+      end record;
+
+   overriding
+   procedure respond (Self : in out retreat_Sprite;  to_Event : in lace.Event.Item'Class)
+   is
+   begin
+      ada.text_io.put_Line ("*** retreat_Sprite ***");
+   end respond;
+
+   retreat_Sprite_Response : aliased retreat_Sprite; -- := (lace.Response.item with sprite => the_Ball);
+
+
+
+
+
+
    ---------
    --- Start
    --
@@ -769,6 +823,12 @@ is
                gel.sprite_Id;
 
       Cycle : Natural := 0;
+
+      --  the_Ball : constant gel.Sprite.view := gel.Forge.new_ball_Sprite (Self.Applet.World (1),
+      --                                                                    Site => (2.0, 1.0, 1.0),
+      --                                                                    Color => (opengl.Palette.Red, 1.0),
+      --                                                                    Mass => 1.0);
+
 
    begin
       log ("Registering client with server.");
@@ -809,14 +869,20 @@ is
       --     end loop;
       --  end;
 
-      Self.Applet.client_World.is_a_Mirror (of_World => arcana.Server.World);
+      Self.Applet.client_World.is_a_Mirror (of_World      => arcana.Server.World);
+      Self.Applet.enable_Mouse             (detect_Motion => False);
+      Self.Applet.client_World.Gravity_is  ([0.0, 0.0, 0.0]);
 
+      --  retreat_Sprite_Response.Sprite := the_Ball;
+
+      --  Self.Applet.client_World.add (the_Ball);
 
       ------------
       -- Main Loop
       --
       declare
-         use ada.Calendar;
+         use lace.Event.utility,
+             ada.Calendar;
 
          next_evolve_Time   : ada.Calendar.Time := ada.Calendar.Clock;
          next_evolve_Report : ada.Calendar.Time := next_evolve_Time;
@@ -842,7 +908,7 @@ is
             begin
                if Now > next_evolve_Report
                then
-                  log ("                                               Client ~ Evolves per second:" & evolve_Count'Image);
+                  --  log ("                                               Client ~ Evolves per second:" & evolve_Count'Image);
                   next_evolve_Report := next_evolve_Report + 1.0;
                   evolve_Count       := 0;
                end if;
@@ -852,14 +918,21 @@ is
 
             --  Self.Applet.World.evolve;     -- Advance the world.
             Self.Applet.freshen;          -- Evolve the world, handle new events and update the screen.
-
+            --  Self.Applet.local_Observer.respond;
 
             if    Self.pc_Sprite     = null
               and Self.pc_sprite_Id /= gel.null_sprite_Id
             then
                begin
                   Self.pc_Sprite := Self.client_World.fetch_Sprite (Self.pc_sprite_Id);
-                  --  Self.Applet.enable_following_Dolly (follow => Self.pc_Sprite);
+                  --  the_Sprite_clicked_Response.Sprite := Self.pc_Sprite;
+                  --
+                  --  connect (the_Observer  =>  Self.Applet.local_Observer,
+                  --           to_Subject    =>  lace.Subject.view (Self.pc_Sprite),
+                  --           with_Response =>  the_Sprite_clicked_Response'Access,
+                  --           to_Event_Kind => +gel.Events.sprite_click_down_Event'Tag);
+                  --
+                  --  --  Self.Applet.enable_following_Dolly (follow => Self.pc_Sprite);
                exception
                   when constraint_Error =>
                      log ("Warning: Unable to fetch PC sprite" & Self.pc_sprite_Id'Image & ".");
@@ -869,7 +942,15 @@ is
 
             if Self.pc_Sprite /= null
             then
+               --  log (Self.pc_Sprite.all'Image);
+
+               if Cycle mod 60 = 0
+               then
+                  log (Self.pc_Sprite.Site'Image);
+               end if;
+
                Self.Applet.Camera.Site_is (Self.pc_Sprite.Site + (0.0, 0.0, 30.0));
+               --  Self.Applet.Camera.Site_is (Self.Applet.Camera.Site + (0.001, 0.0, 0.0));
                --  Self.Applet.Camera.Site_is (Self.pc_Sprite.Site +  Self.pc_Sprite.Spin * (0.0, 10.0, 30.0));
                --  Self.Applet.Camera.Spin_is (Self.pc_Sprite.Spin);
                --  log (Self.pc_Sprite.Spin'Image);

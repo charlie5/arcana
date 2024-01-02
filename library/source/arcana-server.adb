@@ -48,6 +48,7 @@ is
 
    the_World : aliased gel.World.server.item := forge.to_World (Name       => "arcana.Server",
                                                                 Id         => 1,
+                                                                --  space_Kind => physics.Bullet,
                                                                 space_Kind => physics.Box2D,
                                                                 Renderer   => null);
    function World return gel.remote.World.view
@@ -314,16 +315,16 @@ is
          is
             when Forward  => the_sprite_Data.Movement := the_sprite_Data.Movement + [0.0,  4.0, 0.0];
             when Backward => the_sprite_Data.Movement := the_sprite_Data.Movement + [0.0, -4.0, 0.0];
-            when Left     => the_sprite_Data.Spin     := the_sprite_Data.Spin     + 120.0;
-            when Right    => the_sprite_Data.Spin     := the_sprite_Data.Spin     - 120.0;
+            when Left     => the_sprite_Data.Spin     := the_sprite_Data.Spin     + 180.0;
+            when Right    => the_sprite_Data.Spin     := the_sprite_Data.Spin     - 180.0;
          end case;
       else
          case the_Event.Direction
          is
             when Forward  => the_sprite_Data.Movement := the_sprite_Data.Movement + [ 0.0, -4.0, 0.0];
             when Backward => the_sprite_Data.Movement := the_sprite_Data.Movement + [ 0.0,  4.0, 0.0];
-            when Left     => the_sprite_Data.Spin     := the_sprite_Data.Spin     - 120.0;
-            when Right    => the_sprite_Data.Spin     := the_sprite_Data.Spin     + 120.0;
+            when Left     => the_sprite_Data.Spin     := the_sprite_Data.Spin     - 180.0;
+            when Right    => the_sprite_Data.Spin     := the_sprite_Data.Spin     + 180.0;
          end case;
       end if;
 
@@ -363,6 +364,7 @@ is
       -- Create the Player.
       --
       declare
+         the_Player : gel.Sprite.view;
          --  the_Player : constant gel.Sprite.view := gel.Forge.new_rectangle_Sprite (in_World => the_World'Access,
          --                                                                           Site     => [-0.0, 0.0],
          --                                                                           Mass     => 1.0,
@@ -372,14 +374,14 @@ is
          --                                                                           Height   => 1.0,
          --                                                                           Color    => openGL.Palette.Grey,
          --                                                                           Texture  => openGL.to_Asset ("assets/human.png"));
-         the_Player : gel.Sprite.view := gel.Forge.new_circle_Sprite (in_World => the_World'Access,
-                                                                               Site     => [0.0, 0.0, 0.0],
-                                                                               Mass     => 1.0,
-                                                                               Bounce   => 1.0,
-                                                                               Friction => 1.0,
-                                                                               Radius   => 0.5,
-                                                                               Color    => Green,
-                                                                               Texture  => openGL.to_Asset ("assets/human.png"));
+         --  the_Player : gel.Sprite.view := gel.Forge.new_circle_Sprite (in_World => the_World'Access,
+         --                                                                        Site     => [0.0, 0.0, 0.0],
+         --                                                                        Mass     => 1.0,
+         --                                                                        Bounce   => 1.0,
+         --                                                                        Friction => 1.0,
+         --                                                                        Radius   => 0.5,
+         --                                                                        Color    => Green,
+         --                                                                        Texture  => openGL.to_Asset ("assets/human.png"));
       begin
          --  log ("arcana.Server.register ~ the_Player.Visual.Model.Id:" & the_Player.Visual.Model.Id'Image);
 
@@ -387,11 +389,19 @@ is
          the_Player := gel.Forge.new_circle_Sprite (in_World => the_World'Access,
                                                     Site     => [0.0, 0.0, 0.0],
                                                     Mass     => 1.0,
-                                                    Bounce   => 1.0,
-                                                    Friction => 1.0,
+                                                    Bounce   => 0.0,
+                                                    Friction => 0.0,
                                                     Radius   => 0.5,
                                                     Color    => Green,
                                                     Texture  => openGL.to_Asset ("assets/human.png"));
+         --  the_Player := gel.Forge.new_ball_Sprite (in_World => the_World'Access,
+         --                                             Site     => [0.0, 0.0, 0.0],
+         --                                             Mass     => 1.0,
+         --                                             --  Bounce   => 1.0,
+         --                                             --  Friction => 1.0,
+         --                                             Radius   => 0.5,
+         --                                             Color    => (Green, 0.5),
+         --                                             Texture  => openGL.to_Asset ("assets/human.png"));
          the_Player.user_Data_is (new sprite_Data);
          the_World.add (the_Player);
          world_Lock.release;
@@ -693,6 +703,8 @@ is
 
 
 
+
+
    ---------
    --- Start
    --
@@ -714,58 +726,59 @@ is
       -- The One Tree.
       --
       the_one_Tree := gel.Forge.new_circle_Sprite (in_World => the_World'Access,
-                                                   Site     => [0.0, 0.0, 0.0],
-                                                   Mass     => 0.0,
-                                                   Bounce   => 1.0,
-                                                   Friction => 0.0,
-                                                   Radius   => 0.5,
-                                                   Color    => Green,
+                                                   Site     => [5.0, 0.0, 0.0],
+                                                   Mass     =>  0.0,
+                                                   Bounce   =>  0.0,
+                                                   Friction =>  0.0,
+                                                   Radius   =>  0.5,
+                                                   --  Color    => (Green, 0.0),
                                                    Texture  => openGL.to_Asset ("assets/tree7.png"));
-      log (the_one_Tree.Site'Image);
+      --  the_one_Tree.Name_is ("KKK");
+      log (the_one_Tree.Site'Image & the_one_Tree.Name);
 
       the_World.add (the_one_Tree);
 
       --  log (openGL.IO.to_Image (openGL.to_Asset ("assets/terrain/trees.png"))'Length (1)'Image);
 
-      declare
-         use openGL,
-             gel.Math.Random;
-
-         the_Trees   : constant openGL.Image    := openGL.IO.to_Image (openGL.to_Asset ("assets/terrain/trees.png"));
-         Count       :          Natural         := 0;
-         half_Width  : constant gel.Math.Real   := gel.Math.Real (the_Trees'Length (1)) / 2.0;
-         half_Height : constant gel.Math.Real   := gel.Math.Real (the_Trees'Length (2)) / 2.0;
-         Color       :          openGL.rgb_Color;
-      begin
-         for Row in the_Trees'Range (1)
-         loop
-            for Col in the_Trees'Range (2)
-            loop
-               Color := the_Trees (Row, Col);
-
-               if to_Color (Color) /= Black
-               then
-                  --  log ("Tree color:" & Color'Image);
-
-                  the_one_Tree := gel.Forge.new_circle_Sprite (in_World => the_World'Access,
-                                                               Site     => [gel.Math.Real (Col) - half_Width  + gel.Math.Random.random_Real (Lower => -0.25, Upper => 0.25),
-                                                                            gel.Math.Real (Row) - half_Height + gel.Math.Random.random_Real (Lower => -0.25, Upper => 0.25),
-                                                                            gel.Math.Random.random_Real (Lower => -0.01, Upper => 0.01)],     -- Prevent openGL from flipping visuals due to being all at same 'Z' position.
-                                                               Mass     => 0.0,
-                                                               Bounce   => 1.0,
-                                                               Friction => 0.0,
-                                                               Radius   => 0.5,
-                                                               Color    => Green,
-                                                               Texture  => openGL.to_Asset ("assets/tree7.png"));
-                  the_World.add (the_one_Tree);
-
-                  Count := Count + 1;
-               end if;
-            end loop;
-         end loop;
-
-         log ("Tree count:" & Count'Image);
-      end;
+      --  declare
+      --     use openGL,
+      --         gel.Math.Random;
+      --
+      --     the_Trees   : constant openGL.Image    := openGL.IO.to_Image (openGL.to_Asset ("assets/terrain/trees.png"));
+      --     Count       :          Natural         := 0;
+      --     half_Width  : constant gel.Math.Real   := gel.Math.Real (the_Trees'Length (1)) / 2.0;
+      --     half_Height : constant gel.Math.Real   := gel.Math.Real (the_Trees'Length (2)) / 2.0;
+      --     Color       :          openGL.rgb_Color;
+      --  begin
+      --     for Row in the_Trees'Range (1)
+      --     loop
+      --        for Col in the_Trees'Range (2)
+      --        loop
+      --           Color := the_Trees (Row, Col);
+      --
+      --           if to_Color (Color) /= Black
+      --           then
+      --              --  log ("Tree color:" & Color'Image);
+      --
+      --              the_one_Tree := gel.Forge.new_circle_Sprite (in_World => the_World'Access,
+      --                                                           Site     => [gel.Math.Real (Col) - half_Width  + gel.Math.Random.random_Real (Lower => -0.25, Upper => 0.25),
+      --                                                                        gel.Math.Real (Row) - half_Height + gel.Math.Random.random_Real (Lower => -0.25, Upper => 0.25),
+      --                                                                        gel.Math.Random.random_Real (Lower => -0.01, Upper => 0.01)],     -- Prevent openGL from flipping visuals due to being all at same 'Z' position.
+      --                                                           Mass     => 0.0,
+      --                                                           Bounce   => 1.0,
+      --                                                           Friction => 0.0,
+      --                                                           Radius   => 0.5,
+      --                                                           Color    => Green,
+      --                                                           Texture  => openGL.to_Asset ("assets/tree7.png"));
+      --              the_World.add (the_one_Tree);
+      --
+      --              Count := Count + 1;
+      --           end if;
+      --        end loop;
+      --     end loop;
+      --
+      --     log ("Tree count:" & Count'Image);
+      --  end;
 
 
       declare
@@ -804,7 +817,7 @@ is
             begin
                if Now > next_evolve_Report
                then
-                  log ("Server ~ Evolves per second:" & evolve_Count'Image);
+                  --  log ("Server ~ Evolves per second:" & evolve_Count'Image);
                   next_evolve_Report := next_evolve_Report + 1.0;
                   evolve_Count             := 0;
                end if;

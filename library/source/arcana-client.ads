@@ -50,4 +50,16 @@ is
    procedure receive_Chat    (Self : in     Item;   Message : in String)    is abstract;
 
 
+
+
+   type sprite_added_Event is new lace.Event.item with
+      record
+         null; -- Sprite : gel.sprite_Id;
+      end record;
+
+
+
+
+
+
 end arcana.Client;
