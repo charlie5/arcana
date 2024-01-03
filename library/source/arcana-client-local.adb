@@ -435,7 +435,7 @@ is
    procedure respond (Self : in out Sprite_clicked_Response;  to_Event : in lace.Event.Item'Class)
    is
    begin
-      log ("*********************************************************************** Sprite '" & Self.Sprite.Name & "' clicked ...");
+      log ("'" & Self.Sprite.Name & "' clicked.");
    end respond;
 
 
@@ -462,8 +462,7 @@ is
       the_Sprite   : gel.Sprite.view                     := my_Client.Applet.World.fetch_Sprite (the_Event.Sprite);
       new_Response : Sprite_clicked_Response_view        := new Sprite_clicked_Response;
    begin
-      log ("LLL " & the_Event.Sprite'Image);
-      log ("ADDED ****************************  Sprite '" & the_Sprite.Name & "' added ...");
+      log ("'" & the_Sprite.Name & "' added.");
 
       new_Response.Sprite := the_Sprite;
 
