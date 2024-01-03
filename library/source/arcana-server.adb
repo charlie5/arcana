@@ -387,6 +387,7 @@ is
 
          world_Lock.acquire;
          the_Player := gel.Forge.new_circle_Sprite (in_World => the_World'Access,
+                                                    Name     => Name,
                                                     Site     => [0.0, 0.0, 0.0],
                                                     Mass     => 1.0,
                                                     Bounce   => 0.0,
@@ -411,6 +412,7 @@ is
          declare
             the_Event : constant gel.events.new_sprite_Event
               := (Pair => (sprite_Id         => the_Player.Id,
+                           sprite_Name       => lace.Text.forge.to_Text_64 (the_Player.Name),
                            graphics_model_Id => the_Player.Visual.Model.Id,
                            physics_model_Id  => the_Player.physics_Model.Id,
                            mass              => the_Player.Mass,
@@ -726,6 +728,7 @@ is
       -- The One Tree.
       --
       the_one_Tree := gel.Forge.new_circle_Sprite (in_World => the_World'Access,
+                                                   Name     => "the One Tree",
                                                    Site     => [5.0, 0.0, 0.0],
                                                    Mass     =>  0.0,
                                                    Bounce   =>  0.0,
