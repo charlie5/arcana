@@ -48,7 +48,6 @@ is
 
    the_World : aliased gel.World.server.item := forge.to_World (Name       => "arcana.Server",
                                                                 Id         => 1,
-                                                                --  space_Kind => physics.Bullet,
                                                                 space_Kind => physics.Box2D,
                                                                 Renderer   => null);
    function World return gel.remote.World.view
@@ -93,83 +92,6 @@ is
    -----------
    --- Clients
    --
-
-   --  protected new_Clients
-   --  is
-   --     procedure add (the_Client : in Client.view);
-   --     function  fetch return Client.views;
-   --     procedure clear;
-   --
-   --  private
-   --     Clients : Client.views (1 .. 25);
-   --     Count   : Natural := 0;
-   --  end new_Clients;
-   --
-   --
-   --  protected body new_Clients
-   --  is
-   --     procedure add (the_Client : in Client.view)
-   --     is
-   --     begin
-   --        Count           := Count + 1;
-   --        Clients (Count) := the_Client;
-   --     end add;
-   --
-   --     function fetch return Client.views
-   --     is
-   --     begin
-   --        return Clients (1 .. Count);
-   --     end fetch;
-   --
-   --     procedure clear
-   --     is
-   --     begin
-   --        Count := 0;
-   --     end clear;
-   --
-   --  end new_Clients;
-   --
-   --
-   --
-   --  protected old_Clients
-   --  is
-   --     procedure add (the_Client : in Client.view);
-   --     function  fetch return Client.views;
-   --     procedure clear;
-   --
-   --  private
-   --     Clients : Client.views (1 .. 25);
-   --     Count   : Natural := 0;
-   --  end old_Clients;
-   --
-   --
-   --  protected body old_Clients
-   --  is
-   --     procedure add (the_Client : in Client.view)
-   --     is
-   --     begin
-   --        Count           := Count + 1;
-   --        Clients (Count) := the_Client;
-   --     end add;
-   --
-   --
-   --     function fetch return Client.views
-   --     is
-   --     begin
-   --        return Clients (1 .. Count);
-   --     end fetch;
-   --
-   --
-   --     procedure clear
-   --     is
-   --     begin
-   --        Count := 0;
-   --     end clear;
-   --
-   --  end old_Clients;
-
-
-
 
    type client_Info is
       record
@@ -219,7 +141,6 @@ is
                Clients (i).as_Observer  :=  the_Client.as_Observer;
                Clients (i).as_Subject   :=  the_Client.as_Subject;
                Clients (i).pc_sprite_Id :=  the_Client.pc_sprite_Id;
-               --  log ("JHJKJH " & Clients (i).pc_sprite_Id'Image);
                return;
             end if;
          end loop;
@@ -359,32 +280,12 @@ is
          end if;
       end loop;
 
-      --  new_Clients.add (the_Client);
 
       -- Create the Player.
       --
       declare
          the_Player : gel.Sprite.view;
-         --  the_Player : constant gel.Sprite.view := gel.Forge.new_rectangle_Sprite (in_World => the_World'Access,
-         --                                                                           Site     => [-0.0, 0.0],
-         --                                                                           Mass     => 1.0,
-         --                                                                           Bounce   => 1.0,
-         --                                                                           Friction => 1.0,
-         --                                                                           Width    => 1.0,
-         --                                                                           Height   => 1.0,
-         --                                                                           Color    => openGL.Palette.Grey,
-         --                                                                           Texture  => openGL.to_Asset ("assets/human.png"));
-         --  the_Player : gel.Sprite.view := gel.Forge.new_circle_Sprite (in_World => the_World'Access,
-         --                                                                        Site     => [0.0, 0.0, 0.0],
-         --                                                                        Mass     => 1.0,
-         --                                                                        Bounce   => 1.0,
-         --                                                                        Friction => 1.0,
-         --                                                                        Radius   => 0.5,
-         --                                                                        Color    => Green,
-         --                                                                        Texture  => openGL.to_Asset ("assets/human.png"));
       begin
-         --  log ("arcana.Server.register ~ the_Player.Visual.Model.Id:" & the_Player.Visual.Model.Id'Image);
-
          world_Lock.acquire;
          the_Player := gel.Forge.new_circle_Sprite (in_World => the_World'Access,
                                                     Name     => Name,
@@ -395,14 +296,6 @@ is
                                                     Radius   => 0.5,
                                                     Color    => Green,
                                                     Texture  => openGL.to_Asset ("assets/human.png"));
-         --  the_Player := gel.Forge.new_ball_Sprite (in_World => the_World'Access,
-         --                                             Site     => [0.0, 0.0, 0.0],
-         --                                             Mass     => 1.0,
-         --                                             --  Bounce   => 1.0,
-         --                                             --  Friction => 1.0,
-         --                                             Radius   => 0.5,
-         --                                             Color    => (Green, 0.5),
-         --                                             Texture  => openGL.to_Asset ("assets/human.png"));
          the_Player.user_Data_is (new sprite_Data);
          the_World.add (the_Player);
          world_Lock.release;
@@ -435,52 +328,6 @@ is
 
 
 
-   --  procedure register_new (Client : in arcana.Client.view)
-   --  is
-   --  begin
-   --     -- Create the Player.
-   --     --
-   --     declare
-   --        the_Player : constant gel.Sprite.view := gel.Forge.new_circle_Sprite (in_World => the_World'Access,
-   --                                                                              Site     => [0.0, 0.0],
-   --                                                                              Mass     => 1.0,
-   --                                                                              Bounce   => 1.0,
-   --                                                                              Friction => 1.0,
-   --                                                                              Radius   => 0.5,
-   --                                                                              Color    => Green,
-   --                                                                              Texture  => openGL.to_Asset ("assets/human.png"));
-   --     begin
-   --        log ("arcana.Server.register_new ~ the_Player.Visual.Model.Id:" & the_Player.Visual.Model.Id'Image);
-   --
-   --        the_Player.user_Data_is (new sprite_Data);
-   --        the_World.add (the_Player);
-   --
-   --        -- Emit a new 'add sprite' event for any interested observers.
-   --        --
-   --        declare
-   --           the_Event : constant gel.events.new_sprite_Event
-   --             := (Pair => (sprite_Id         => the_Player.Id,
-   --                          graphics_model_Id => the_Player.Visual.Model.Id,
-   --                          physics_model_Id  => the_Player.physics_Model.Id,
-   --                          mass              => the_Player.Mass,
-   --                          transform         => the_Player.Transform,
-   --                          is_visible        => the_Player.is_Visible));
-   --        begin
-   --           the_World.emit (the_Event);
-   --        end;
-   --
-   --        Client.pc_sprite_Id_is (the_Player.Id);
-   --     end;
-   --
-   --     safe_Clients.add (Client);
-   --
-   --     lace.Event.utility.connect (the_Observer  => the_World.local_Observer,
-   --                                 to_Subject    => Client.as_Subject,
-   --                                 with_Response => the_pc_move_Response'Access,
-   --                                 to_Event_Kind => lace.Event.utility.to_Kind (pc_move_Event'Tag));
-   --  end register_new;
-
-
 
    -------------------------
    --- Client Deregistration
@@ -492,8 +339,6 @@ is
    begin
       log ("Deregistering '" & to_String (client_Info.Name) & "'.");
 
-      --  old_Clients.add (the_Client);
-
       -- Emit a new 'rid sprite' event for any interested observers.
       --
       declare
@@ -502,7 +347,7 @@ is
          the_World.emit (the_Event);
       end;
 
-      safe_Clients.rid     (the_Client);
+      safe_Clients.rid (the_Client);
 
       world_Lock.acquire;
       the_World .rid (the_World.fetch_Sprite (client_Info.pc_sprite_Id));
@@ -515,32 +360,6 @@ is
                                      subject_Name  => to_String (client_Info.Name));
    end deregister;
 
-
-
-   --  procedure deregister_old (Client : in arcana.Client.view)
-   --  is
-   --     client_Info : constant Server.client_Info := safe_Clients.Info (for_Client => Client);
-   --  begin
-   --     log ("Deregistering old client '" & to_String (client_Info.Name) & "'.");
-   --
-   --     -- Emit a new 'rid sprite' event for any interested observers.
-   --     --
-   --     declare
-   --        the_Event : constant gel.events.rid_sprite_Event := (Id => client_Info.pc_sprite_Id);
-   --     begin
-   --        the_World.emit (the_Event);
-   --     end;
-   --
-   --     safe_Clients.rid     (Client);
-   --     the_World   .rid     (the_World.fetch_Sprite (client_Info.pc_sprite_Id));
-   --     --  the_World   .destroy (the_World.fetch_Sprite (the_Client.pc_sprite_Id));
-   --
-   --     lace.Event.utility.disconnect (the_Observer  => the_World.local_Observer,
-   --                                    from_Subject  => client_Info.as_Subject,
-   --                                    for_Response  => the_pc_move_Response'Access,
-   --                                    to_Event_Kind => lace.Event.utility.to_Kind (pc_move_Event'Tag),
-   --                                    subject_Name  => to_String (client_Info.Name));
-   --  end deregister_old;
 
 
 
@@ -599,7 +418,8 @@ is
                exception
                   when system.RPC.communication_Error
                      | storage_Error =>
-                     put_Line (+Each.Name & " has died.");
+
+                     log (+Each.Name & " has died.");
                      deregister (Each.Client);
 
                      --  dead_Count        := dead_Count + 1;
@@ -607,24 +427,6 @@ is
                end;
             end loop;
 
-            --  declare
-            --     all_Clients : constant Client.views := arcana.Server.all_Clients;
-            --  begin
-            --     for Each of all_Clients
-            --     loop
-            --        for i in 1 .. dead_Count
-            --        loop
-            --           begin
-            --              put_Line ("Ridding " & (+Dead (i).Name) & " from " & Each.Name);
-            --              Each.deregister_Client ( Dead (i).as_Observer,
-            --                                      +Dead (i).Name);
-            --           exception
-            --              when arcana.Client.unknown_Client =>
-            --                 put_Line ("Deregister of " & (+Dead (i).Name) & " from " & Each.Name & " is not needed.");
-            --           end;
-            --        end loop;
-            --     end loop;
-            --  end;
          end;
       end loop;
 
@@ -706,7 +508,6 @@ is
 
 
 
-
    ---------
    --- Start
    --
@@ -722,7 +523,6 @@ is
       use type gel.Sprite.any_user_Data_view;
 
    begin
-      Put_Line ("Server world " & the_World'address'Image);
       the_World.Gravity_is ([0.0, 0.0, 0.0]);
 
       -- The One Tree.
@@ -734,11 +534,7 @@ is
                                                    Bounce   =>  0.0,
                                                    Friction =>  0.0,
                                                    Radius   =>  0.5,
-                                                   --  Color    => (Green, 0.0),
                                                    Texture  => openGL.to_Asset ("assets/tree7.png"));
-      --  the_one_Tree.Name_is ("KKK");
-      log (the_one_Tree.Site'Image & the_one_Tree.Name);
-
       the_World.add (the_one_Tree);
 
       --  log (openGL.IO.to_Image (openGL.to_Asset ("assets/terrain/trees.png"))'Length (1)'Image);
@@ -794,25 +590,6 @@ is
       begin
          --  while the_World.is_open
          loop
-            --  -- Register new clients.
-            --  --
-            --  for Each of new_Clients.fetch
-            --  loop
-            --     register_new (Each);
-            --  end loop;
-            --
-            --  new_Clients.clear;
-
-
-            --  -- Deregister old clients.
-            --  --
-            --  for Each of old_Clients.fetch
-            --  loop
-            --     deregister_old (Each);
-            --  end loop;
-            --
-            --  old_Clients.clear;
-
             evolve_Count := evolve_Count + 1;
 
             declare
@@ -822,7 +599,7 @@ is
                then
                   --  log ("Server ~ Evolves per second:" & evolve_Count'Image);
                   next_evolve_Report := next_evolve_Report + 1.0;
-                  evolve_Count             := 0;
+                  evolve_Count       := 0;
                end if;
             end;
 
@@ -871,7 +648,7 @@ is
             end;
 
             delay until next_evolve_Time;
-            next_evolve_Time := next_evolve_Time + 1.0 / (1.0 * 60.0);
+            next_evolve_Time := next_evolve_Time + 1.0 / 60.0;
          end loop;
       end;
    end start;

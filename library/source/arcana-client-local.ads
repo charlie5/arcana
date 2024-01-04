@@ -28,10 +28,9 @@ package arcana.Client.local
 --
 is
    type Item is limited new lace.Any.limited_item
-                        and arcana.Client  .item with private;
+                        and arcana.Client.item with private;
 
    type View is access all Item'Class;
-
 
    my_Client : View;
 
@@ -58,16 +57,8 @@ is
    --
    procedure start (Self : in out arcana.Client.local.item);
 
-   --  overriding
-   --  procedure   register_Client (Self : in out Item;   other_Client : in Client.view);
-   --
-   --  overriding
-   --  procedure deregister_Client (Self : in out Item;   other_Client_as_Observer : in lace.Observer.view;
-   --                                                     other_Client_Name        : in String);
    overriding
    procedure Server_has_shutdown (Self : in out Item);
-
-
 
    overriding
    procedure pc_sprite_Id_is (Self : in out Item;   Now : in gel.sprite_Id);

@@ -23,14 +23,6 @@ is
    procedure Server_has_shutdown (Self : in out Item) is abstract;
    procedure ping                (Self : in     Item) is null;
 
-   --  procedure   register_Client   (Self : in out Item;   other_Client : in Client.view) is abstract;
-   --
-   --  procedure deregister_Client   (Self : in out Item;   other_Client_as_Observer : in lace.Observer.view;
-   --                                                       other_Client_Name        : in String) is abstract;
-   --
-   -- Raises unknown_Client exception when the other_Client is unknown.
-
-
    function  as_Observer (Self : access Item) return lace.Observer.view is abstract;
    function  as_Subject  (Self : access Item) return lace.Subject .view is abstract;
 
@@ -51,15 +43,10 @@ is
 
 
 
-
    type sprite_added_Event is new lace.Event.item with
       record
          null; -- Sprite : gel.sprite_Id;
       end record;
-
-
-
-
 
 
 end arcana.Client;

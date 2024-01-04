@@ -69,7 +69,6 @@ is
        gtk.Text_View,
        gtk.Toggle_Button,
 
-       --  Common,
        gtkAda.Builder,
 
        ada.Text_IO;
@@ -97,20 +96,13 @@ is
    --- Gtk
    --
 
-   --  top_Grid : gtk.Grid.gtk_Grid;
-   --  gl_Box   : gtk.Box.gtk_Box;
-
-
-
    procedure on_Chat_activated (Self : access Gtk_Entry_Record'Class)
    is
       Text : constant String := get_Chars (Self, 0);
    begin
       Self.delete_Text (0);
-      arcana.Server.add_Chat (from    => my_Client.all'Access,
+      arcana.Server.add_Chat (From    => my_Client.all'Access,
                               Message => Text);
-
-      --  the_PC.Name_is (name_Entry.get_Text);
    end on_Chat_activated;
 
 
@@ -124,8 +116,6 @@ is
       Builder :         gtkAda_Builder;
       Error   : aliased gError;
    begin
-      --  gtk.Main.init;
-
       --  Create a new Gtkada_Builder object.
       --
       gtk_New (Builder);
@@ -247,16 +237,13 @@ is
       Self.events_Text   := gtk_Text_View       (Builder.get_Object ("events_Text"));
       Self.events_Window := gtk_scrolled_Window (Builder.get_Object ("events_Window"));
 
-      Self.events_Text.Set_Size_Request (Width => -1,
+      Self.events_Text.set_size_Request (Width  =>  -1,
                                          Height => 100);
 
       do_Connect (Builder);
 
-      -- Set up events.
+      -- Set up GTK events.
       --
-      --  on_Changed (+Self.chat_Entry,       call =>       on_Name_changed'Access);
-      --  on_Activate (+Self.chat_Entry,       call =>       on_Name_changed'Access);
-
       Self.chat_Entry.on_Activate (call => on_Chat_activated'Access);
 
       Self.top_Window.show_All;
@@ -316,7 +303,6 @@ is
          when Left   =>  left_Key_is_already_pressed := True;
          when others => null;
       end case;
-
    end respond;
 
 
@@ -439,10 +425,6 @@ is
    end respond;
 
 
-   --  the_Sprite_clicked_Response : aliased Sprite_clicked_Response;
-
-
-
 
    type Sprite_added_Response is new lace.Response.item with
       record
@@ -500,21 +482,8 @@ is
          --  Create a window with a size of 800 x 650.
          --
          --  gtk_new (Self.top_Window);
-         Self.top_Window.set_default_Size (1920, 1080);
-
-         --  Create a gl_Box to organize vertically the contents of the window.
-         --
-         --  gtk_New_vBox        (Self.Box);
-         --  Self.top_Window.add (Self.gl_Box);
-
-         --  Add a label.
-         --
-         --  gtk_new             (Self.Label, "Hello Arcana.");
-         --  Self.gl_Box.pack_Start (Self.Label,
-         --  gl_Box.pack_Start (Self.Label,
-                              --  Expand  => False,
-                              --  Fill    => False,
-                              --  Padding => 10);
+         Self.top_Window.set_default_Size (Width  => 1920,
+                                           Height => 1080);
 
          Self.Name   := to_unbounded_String (Name);
          Self.Applet := gel.Forge.new_client_Applet (Named         => "Arcana",
@@ -523,11 +492,6 @@ is
                                                      space_Kind    => physics.Box2d);
 
          Self.gl_Box.pack_Start (gel.Window.gtk.view (Self.Applet.Window).GL_Area);
-
-         --  gel.Window.gtk.view (Self.Applet.Window).GL_Area.set_can_Focus (True);
-
-         --  top_Grid.attach (gel.Window.gtk.view (Self.Applet.Window).GL_Area, 1, 1);
-         --  gl_Box.pack_Start (gel.Window.gtk.view (Self.Applet.Window).GL_Area);
 
          --  Show the window.
          --
@@ -552,12 +516,7 @@ is
                   +gel.remote.World.sprite_added_Event'Tag);
 
 
-
          Self.Applet.Camera.Site_is ([0.0, 0.0, 20.0]);
-
-         --  Self.Applet.enable_simple_Dolly (in_World => 1);
-         --  Self.Applet.World.Gravity_is ([0.0, 0.0,  0.0]);
-         --  Self.Applet.World.add        (Self.Player);
 
 
          -- Set the lights position.
@@ -628,46 +587,6 @@ is
    -- Operations
    --
 
-   --  overriding
-   --  procedure register_Client (Self : in out Item;   other_Client : in Client.view)
-   --  is
-   --     use lace.Event.utility,
-   --         ada.Text_IO;
-   --  begin
-   --     lace.Event.utility.connect (the_Observer  => Self'unchecked_Access,
-   --                                 to_Subject    => other_Client.as_Subject,
-   --                                 with_Response => the_Response'Access,
-   --                                 to_Event_Kind => to_Kind (arcana.Client.Message'Tag));
-   --
-   --     put_Line (other_Client.Name & " is here.");
-   --  end register_Client;
-   --
-   --
-   --
-   --  overriding
-   --  procedure deregister_Client (Self : in out Item;   other_Client_as_Observer : in lace.Observer.view;
-   --                                                     other_Client_Name        : in String)
-   --  is
-   --     use lace.Event.utility,
-   --         ada.Text_IO;
-   --  begin
-   --     begin
-   --        Self.as_Subject.deregister (other_Client_as_Observer,
-   --                                    to_Kind (arcana.Client.Message'Tag));
-   --     exception
-   --        when constraint_Error =>
-   --           raise unknown_Client with "Other client not known. Deregister is not required.";
-   --     end;
-   --
-   --     Self.as_Observer.rid (the_Response'unchecked_Access,
-   --                           to_Kind (arcana.Client.Message'Tag),
-   --                           other_Client_Name);
-   --
-   --     put_Line (other_Client_Name & " leaves.");
-   --  end deregister_Client;
-
-
-
    overriding
    procedure Server_has_shutdown (Self : in out Item)
    is
@@ -722,7 +641,7 @@ is
    exception
       when E : others =>
          new_Line;
-         put_Line ("Error in check_Server_lives task.");
+         put_Line ("Error in 'check_Server_lives' task.");
          new_Line;
          put_Line (ada.exceptions.exception_Information (E));
    end check_Server_lives;
@@ -761,7 +680,7 @@ is
       is
          use lace.Text.forge;
       begin
-         Count := Count + 1;
+         Count            := Count + 1;
          Messages (Count) := to_Text_256 (Message);
       end add;
 
@@ -789,25 +708,6 @@ is
 
 
 
-   type retreat_Sprite is new lace.Response.item with
-      record
-         Sprite : gel.Sprite.view;
-      end record;
-
-   overriding
-   procedure respond (Self : in out retreat_Sprite;  to_Event : in lace.Event.Item'Class)
-   is
-   begin
-      ada.text_io.put_Line ("*** retreat_Sprite ***");
-   end respond;
-
-   retreat_Sprite_Response : aliased retreat_Sprite; -- := (lace.Response.item with sprite => the_Ball);
-
-
-
-
-
-
    ---------
    --- Start
    --
@@ -822,12 +722,6 @@ is
                gel.sprite_Id;
 
       Cycle : Natural := 0;
-
-      --  the_Ball : constant gel.Sprite.view := gel.Forge.new_ball_Sprite (Self.Applet.World (1),
-      --                                                                    Site => (2.0, 1.0, 1.0),
-      --                                                                    Color => (opengl.Palette.Red, 1.0),
-      --                                                                    Mass => 1.0);
-
 
    begin
       log ("Registering client with server.");
@@ -849,32 +743,10 @@ is
 
       check_Server_lives.start (Self'unchecked_Access);
 
-      --  declare
-      --     Peers : constant arcana.Client.views := arcana.Server.all_Clients;
-      --  begin
-      --     for i in Peers'Range
-      --     loop
-      --        if Self'unchecked_Access /= Peers (i)
-      --        then
-      --           begin
-      --              Peers (i).register_Client (Self'unchecked_Access);    -- Register our client with all other clients.
-      --              Self     .register_Client (Peers (i));                -- Register all other clients with our client.
-      --           exception
-      --              when system.RPC.communication_Error
-      --                 | storage_Error =>
-      --                 null;     -- Peer (i) has died, so ignore it and do nothing.
-      --           end;
-      --        end if;
-      --     end loop;
-      --  end;
-
       Self.Applet.client_World.is_a_Mirror (of_World      => arcana.Server.World);
       Self.Applet.enable_Mouse             (detect_Motion => False);
       Self.Applet.client_World.Gravity_is  ([0.0, 0.0, 0.0]);
 
-      --  retreat_Sprite_Response.Sprite := the_Ball;
-
-      --  Self.Applet.client_World.add (the_Ball);
 
       ------------
       -- Main Loop
@@ -890,16 +762,7 @@ is
       begin
          while Self.Applet.is_open
          loop
-            Cycle := Cycle + 1;
-
-            if Cycle = 1500
-            then
-               null;
-               --  raise Constraint_Error with "cycle 500";
-            end if;
-
-
-
+            Cycle        := Cycle        + 1;
             evolve_Count := evolve_Count + 1;
 
             declare
@@ -914,24 +777,13 @@ is
             end;
 
 
-
-            --  Self.Applet.World.evolve;     -- Advance the world.
-            Self.Applet.freshen;          -- Evolve the world, handle new events and update the screen.
-            --  Self.Applet.local_Observer.respond;
+            Self.Applet.freshen;     -- Evolve the world, handle new events and update the screen.
 
             if    Self.pc_Sprite     = null
               and Self.pc_sprite_Id /= gel.null_sprite_Id
             then
                begin
                   Self.pc_Sprite := Self.client_World.fetch_Sprite (Self.pc_sprite_Id);
-                  --  the_Sprite_clicked_Response.Sprite := Self.pc_Sprite;
-                  --
-                  --  connect (the_Observer  =>  Self.Applet.local_Observer,
-                  --           to_Subject    =>  lace.Subject.view (Self.pc_Sprite),
-                  --           with_Response =>  the_Sprite_clicked_Response'Access,
-                  --           to_Event_Kind => +gel.Events.sprite_click_down_Event'Tag);
-                  --
-                  --  --  Self.Applet.enable_following_Dolly (follow => Self.pc_Sprite);
                exception
                   when constraint_Error =>
                      log ("Warning: Unable to fetch PC sprite" & Self.pc_sprite_Id'Image & ".");
@@ -941,18 +793,7 @@ is
 
             if Self.pc_Sprite /= null
             then
-               --  log (Self.pc_Sprite.all'Image);
-
-               if Cycle mod 60 = 0
-               then
-                  log (Self.pc_Sprite.Site'Image);
-               end if;
-
-               Self.Applet.Camera.Site_is (Self.pc_Sprite.Site + (0.0, 0.0, 30.0));
-               --  Self.Applet.Camera.Site_is (Self.Applet.Camera.Site + (0.001, 0.0, 0.0));
-               --  Self.Applet.Camera.Site_is (Self.pc_Sprite.Site +  Self.pc_Sprite.Spin * (0.0, 10.0, 30.0));
-               --  Self.Applet.Camera.Spin_is (Self.pc_Sprite.Spin);
-               --  log (Self.pc_Sprite.Spin'Image);
+               Self.Applet.Camera.Site_is (Self.pc_Sprite.Site + [0.0, 0.0, 30.0]);
             end if;
 
 
@@ -976,9 +817,9 @@ is
                if Count > 0
                then
                   declare
-                     Adjust : constant gtk.Adjustment.gtk_Adjustment := Self.events_Window.get_vAdjustment;
+                     Adjuster : constant gtk.Adjustment.gtk_Adjustment := Self.events_Window.get_vAdjustment;
                   begin
-                     Adjust.set_Value (Adjust.get_Upper);
+                     Adjuster.set_Value (Adjuster.get_Upper);
                   end;
                end if;
             end;
@@ -993,7 +834,7 @@ is
 
 
             delay until next_evolve_Time;
-            next_evolve_Time := next_evolve_Time + 1.0 / (1.0 * 60.0);
+            next_evolve_Time := next_evolve_Time + 1.0 / 60.0;
          end loop;
       end;
 
@@ -1012,28 +853,6 @@ is
             when system.RPC.communication_Error =>
                Self.Server_is_dead := True;
          end;
-
-         --  if not Self.Server_is_dead
-         --  then
-         --     declare
-         --        Peers : constant arcana.Client.views := arcana.Server.all_Clients;
-         --     begin
-         --        for i in Peers'Range
-         --        loop
-         --           if Self'unchecked_Access /= Peers (i)
-         --           then
-         --              begin
-         --                 Peers (i).deregister_Client ( Self'unchecked_Access,   -- Deregister our client with every other client.
-         --                                              +Self.Name);
-         --              exception
-         --                 when system.RPC.communication_Error
-         --                    | storage_Error =>
-         --                    null;   -- Peer is dead, so do nothing.
-         --              end;
-         --           end if;
-         --        end loop;
-         --     end;
-         --  end if;
       end if;
 
       check_Server_lives.halt;
