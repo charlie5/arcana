@@ -306,23 +306,16 @@ is
 
 
 
-   type Sprite_added_Response is new lace.Response.item with
-      record
-         Sprite : gel.Sprite.view;
-      end record;
-
-   type Sprite_added_Response_view is access all Sprite_added_Response;
-
-
+   type Sprite_added_Response is new lace.Response.item with null record;
 
    overriding
    procedure respond (Self : in out Sprite_added_Response;  to_Event : in lace.Event.Item'Class)
    is
       use lace.Event.utility;
 
-      the_Event    : gel.Remote.World.sprite_added_Event := gel.Remote.World.sprite_added_Event (to_Event);
-      the_Sprite   : gel.Sprite.view                     := my_Client.Applet.World.fetch_Sprite (the_Event.Sprite);
-      new_Response : Sprite_clicked_Response_view        := new Sprite_clicked_Response;
+      the_Event    : constant gel.Remote.World.sprite_added_Event := gel.Remote.World.sprite_added_Event (to_Event);
+      the_Sprite   : constant gel.Sprite.view                     := my_Client.Applet.World.fetch_Sprite (the_Event.Sprite);
+      new_Response : constant Sprite_clicked_Response_view        := new Sprite_clicked_Response;
    begin
       log ("'" & the_Sprite.Name & "' added.");
 
