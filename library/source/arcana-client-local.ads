@@ -13,7 +13,6 @@ with
 
      gtk.Box,
      gtk.gEntry,
-     gtk.Label,
      gtk.scrolled_Window,
      gtk.Text_View,
      gtk.Window,
@@ -90,7 +89,6 @@ private
 
 
    use gtk.Box,
-       gtk.Label,
        gtk.Window,
 
        ada.Strings.unbounded;
@@ -120,9 +118,7 @@ private
          --
          pc_sprite_Id : gel.sprite_Id  := gel.null_sprite_Id;
          pc_Sprite    : gel.Sprite.view;
-
          Applet       : gel.Applet.client_world.view;
-         --  Player : gel.Sprite.view;
 
          -- Gel Events.
          --

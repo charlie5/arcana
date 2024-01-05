@@ -9,13 +9,11 @@ with
      gel.Window.setup,
      gel.Window.gtk,
      gel.Keyboard,
-     gel.World.client,
      gel.Events,
      gel.remote.World,
 
      Physics,
 
-     openGL.Palette,
      openGL.Light,
 
      glib,
@@ -23,20 +21,9 @@ with
      glib.Object,
 
      gtk.Adjustment,
-     gtk.Box,
-     gtk.Button,
-     gtk.Editable,
-     gtk.gEntry,
-     gtk.Grid,
-     gtk.Frame,
      gtk.Main,
-     gtk.radio_Button,
-     gtk.spin_Button,
-     gtk.Text_Buffer,
-     gtk.Text_View,
-     gtk.Toggle_Button,
-     gtk.Label,
-     gtk.Widget,
+     gtk.text_Buffer,
+
      gtkAda.Builder,
 
      system.RPC,
@@ -56,18 +43,10 @@ is
        glib.Object,
 
        gtk.Box,
-       gtk.Button,
        gtk.GEntry,
-       gtk.Grid,
-       gtk.Editable,
-       gtk.Frame,
-       gtk.Label,
-       gtk.spin_Button,
        gtk.scrolled_Window,
-       gtk.radio_Button,
-       gtk.Text_Buffer,
-       gtk.Text_View,
-       gtk.Toggle_Button,
+       gtk.text_Buffer,
+       gtk.text_View,
 
        gtkAda.Builder,
 
@@ -110,8 +89,7 @@ is
 
    procedure setup_Gtk (Self : in out Client.local.item)
    is
-      use gtk.Widget,
-          gtkAda.Builder;
+      use gtkAda.Builder;
 
       Builder :         gtkAda_Builder;
       Error   : aliased gError;
@@ -125,111 +103,11 @@ is
       if Builder.add_from_File (default_Filename,
                                 Error'Access) = 0
       then
-         put_Line ("Error [Builder.add_from_File]: "
-                   & get_Message (Error));
+         put_Line ("Error [Builder.add_from_File]: " & get_Message (Error));
          Error_free (Error);
       end if;
 
-
       -- Set our widgets.
-      --
-
-      --  top_Grid := gtk_Grid (Builder.get_Object (Name =>       "top_Grid"));
-      --  gl_Box   := gtk_Box  (Builder.get_Object (Name =>       "gl_Box"));
-
-
-      --  name_Entry         := gtk_gEntry (Builder.get_Object (Name =>       "name_Entry"));
-      --  appearance_Entry   := gtk_gEntry (Builder.get_Object (Name => "appearance_Entry"));
-      --
-      --  dwarf_Button       := gtk_radio_Button (Builder.get_Object (Name =>  "dwarf_Button"));
-      --  elf_Button         := gtk_radio_Button (Builder.get_Object (Name =>    "elf_Button"));
-      --  goblin_Button      := gtk_radio_Button (Builder.get_Object (Name => "goblin_Button"));
-      --  hobbit_Button      := gtk_radio_Button (Builder.get_Object (Name => "hobbit_Button"));
-      --  man_Button         := gtk_radio_Button (Builder.get_Object (Name =>    "man_Button"));
-      --
-      --  avail_points_Label := gtk_Label (Builder.get_Object (Name => "avail_points_Label"));
-      --  total_points_Label := gtk_Label (Builder.get_Object (Name => "total_points_Label"));
-      --
-      --  brawn_Spinner := gtk_Spin_Button (Builder.get_Object (Name => "brawn_Spinner"));
-      --  wit_Spinner   := gtk_Spin_Button (Builder.get_Object (Name =>   "wit_Spinner"));
-      --  deft_Spinner  := gtk_Spin_Button (Builder.get_Object (Name =>  "deft_Spinner"));
-      --  grit_Spinner  := gtk_Spin_Button (Builder.get_Object (Name =>  "grit_Spinner"));
-      --  will_Spinner  := gtk_Spin_Button (Builder.get_Object (Name =>  "will_Spinner"));
-      --  agile_Spinner := gtk_Spin_Button (Builder.get_Object (Name => "agile_Spinner"));
-      --
-      --  hit_points_Label     := gtk_Label (Builder.get_Object (Name =>     "hit_points_Label"));
-      --  fatigue_points_Label := gtk_Label (Builder.get_Object (Name => "fatigue_points_Label"));
-      --  perception_Label     := gtk_Label (Builder.get_Object (Name =>     "perception_Label"));
-      --
-      --  swing_damage_Label   := gtk_Label (Builder.get_Object (Name =>   "swing_damage_Label"));
-      --  thrust_damage_Label  := gtk_Label (Builder.get_Object (Name =>  "thrust_damage_Label"));
-      --
-      --  none_encumbrance_Label    := gtk_Label (Builder.get_Object (Name =>    "none_encumbrance_Label"));
-      --  light_encumbrance_Label   := gtk_Label (Builder.get_Object (Name =>   "light_encumbrance_Label"));
-      --  medium_encumbrance_Label  := gtk_Label (Builder.get_Object (Name =>  "medium_encumbrance_Label"));
-      --  heavy_encumbrance_Label   := gtk_Label (Builder.get_Object (Name =>   "heavy_encumbrance_Label"));
-      --  maximum_encumbrance_Label := gtk_Label (Builder.get_Object (Name => "maximum_encumbrance_Label"));
-      --
-      --  none_move_Label    := gtk_Label (Builder.get_Object (Name => "none_move_Label"));
-      --  light_move_Label   := gtk_Label (Builder.get_Object (Name => "light_move_Label"));
-      --  medium_move_Label  := gtk_Label (Builder.get_Object (Name => "medium_move_Label"));
-      --  heavy_move_Label   := gtk_Label (Builder.get_Object (Name => "heavy_move_Label"));
-      --  maximum_move_Label := gtk_Label (Builder.get_Object (Name => "maximum_move_Label"));
-      --
-      --  none_dodge_Label    := gtk_Label (Builder.get_Object (Name => "none_dodge_Label"));
-      --  light_dodge_Label   := gtk_Label (Builder.get_Object (Name => "light_dodge_Label"));
-      --  medium_dodge_Label  := gtk_Label (Builder.get_Object (Name => "medium_dodge_Label"));
-      --  heavy_dodge_Label   := gtk_Label (Builder.get_Object (Name => "heavy_dodge_Label"));
-      --  maximum_dodge_Label := gtk_Label (Builder.get_Object (Name => "maximum_dodge_Label"));
-
-
-      -- Set up events.
-      --
-      --  on_Changed (+name_Entry,       call =>       on_Name_changed'Access);
-      --  on_Changed (+appearance_Entry, call => on_Appearance_changed'Access);
-
-      --  dwarf_Button .on_Toggled ( on_dwarf_Race_selected'Access);
-      --  elf_Button   .on_Toggled (   on_elf_Race_selected'Access);
-      --  goblin_Button.on_Toggled (on_goblin_Race_selected'Access);
-      --  hobbit_Button.on_Toggled (on_hobbit_Race_selected'Access);
-      --  man_Button   .on_Toggled (   on_man_Race_selected'Access);
-      --
-      --  brawn_Spinner.on_Value_changed (on_Brawn_changed'Access);
-      --  grit_Spinner .on_Value_changed (on_Grit_changed 'Access);
-      --  wit_Spinner  .on_Value_changed (on_Wit_changed  'Access);
-      --  will_Spinner .on_Value_changed (on_Will_changed 'Access);
-      --  deft_Spinner .on_Value_changed (on_Deft_changed 'Access);
-      --  agile_Spinner.on_Value_changed (on_Agile_changed'Access);
-
-
-      --  Do the necessary event connections.
-      --
-      --  register_Handler
-      --    (Builder      => Builder,
-      --     Handler_Name => "on_btn_concatenate_clicked",
-      --     Handler      => On_Btn_Concatenate_Clicked'Access);
-      --
-      --  register_Handler
-      --    (Builder      => Builder,
-      --     Handler_Name => "on_btn_console_greeting_clicked",
-      --     Handler      => On_Btn_Console_Greeting_Clicked'Access);
-      --
-      --  register_Handler
-      --    (Builder      => Builder,
-      --     Handler_Name => "on_window1_delete_event",
-      --     Handler      => On_Window1_Delete_Event'Access);
-      --
-      --  register_Handler
-      --    (Builder      => Builder,
-      --     Handler_Name => "on_Top_destroy",
-      --     Handler      => on_Top_destroy'Access);
-      --
-      --  register_Handler
-      --    (Builder      => Builder,
-      --     Handler_Name => "on_print_to_console",
-      --     Handler      => On_Print_To_Console'Access);
-
-      --  Find our main window, then display it and all of its children.
       --
       Self.top_Window    := gtk_Window          (Builder.get_Object ("Top"));
       Self.gl_Box        := gtk_Box             (Builder.get_Object ("gl_Box"));
@@ -237,15 +115,17 @@ is
       Self.events_Text   := gtk_Text_View       (Builder.get_Object ("events_Text"));
       Self.events_Window := gtk_scrolled_Window (Builder.get_Object ("events_Window"));
 
+      -- Configure our widgets.
+      --
       Self.events_Text.set_size_Request (Width  =>  -1,
                                          Height => 100);
-
-      do_Connect (Builder);
-
       -- Set up GTK events.
       --
+      do_Connect (Builder);
       Self.chat_Entry.on_Activate (call => on_Chat_activated'Access);
 
+      --  Display our main window and all of it's children.
+      --
       Self.top_Window.show_All;
    end setup_Gtk;
 
@@ -466,8 +346,7 @@ is
 
    function to_Client (Name : in String) return Item
    is
-      use openGL.Palette,
-          lace.Event.utility;
+      use lace.Event.utility;
    begin
       gtk.Main.init;     -- Initialize GtkAda.
 
@@ -752,8 +631,7 @@ is
       -- Main Loop
       --
       declare
-         use lace.Event.utility,
-             ada.Calendar;
+         use ada.Calendar;
 
          next_evolve_Time   : ada.Calendar.Time := ada.Calendar.Clock;
          next_evolve_Report : ada.Calendar.Time := next_evolve_Time;

@@ -3,10 +3,8 @@ with
      gel.Sprite,
      gel.Forge,
      gel.Events,
-     float_Math.Random,
 
      openGL.Palette,
-     openGL.IO,
 
      Physics,
 
@@ -14,7 +12,6 @@ with
      lace.Subject,
      lace.Response,
      lace.Event.utility,
-
      lace.Text.forge,
 
      system.RPC,
@@ -517,9 +514,7 @@ is
 
    procedure start
    is
-      use gel.Math,
-          ada.Text_IO;
-
+      use gel.Math;
       use type gel.Sprite.any_user_Data_view;
 
    begin
