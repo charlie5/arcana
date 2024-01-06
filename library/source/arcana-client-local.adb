@@ -492,24 +492,17 @@ is
 
 
 
-   ---------
-   --- Start
+   --------
+   --- Open
    --
 
-   procedure start (Self : in out arcana.Client.local.item)
+   procedure open  (Self : in out arcana.Client.local.item)
    is
-      use gel.Applet.client_world,
-          gel.Math;
-          --  ada.Text_IO;
+      use gel.Applet.client_world;
 
-      use type gel.Sprite.view,
-               gel.sprite_Id;
    begin
       log ("Registering client with server.");
 
-      --------
-      -- Setup
-      --
       begin
          arcana.Server.register (Self'unchecked_Access);   -- Register our client with the server.
       exception
@@ -517,6 +510,7 @@ is
             log (+Self.Name & " is already in use.");
             check_Server_lives.halt;
             free (Self.Applet);
+
             return;
       end;
 
@@ -527,8 +521,24 @@ is
       Self.Applet.client_World.is_a_Mirror (of_World      => arcana.Server.World);
       Self.Applet.enable_Mouse             (detect_Motion => False);
       Self.Applet.client_World.Gravity_is  ([0.0, 0.0, 0.0]);
+   end open;
 
 
+
+
+   -------
+   --- Run
+   --
+
+   procedure run (Self : in out arcana.Client.local.item)
+   is
+      use gel.Applet.client_world,
+          gel.Math;
+          --  ada.Text_IO;
+
+      use type gel.Sprite.view,
+               gel.sprite_Id;
+   begin
       ------------
       -- Main Loop
       --
@@ -606,9 +616,6 @@ is
       end;
 
 
-      -----------
-      -- Shutdown
-      --
       arcana.Server.World.deregister (Self.Applet.client_World.all'Access);
 
       if    not Self.Server_has_shutdown
@@ -633,7 +640,9 @@ is
          lace.Event.utility.close;
 
          raise;
-   end start;
+   end run;
+
+
 
 
 

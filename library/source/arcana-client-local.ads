@@ -51,7 +51,9 @@ is
 
    -- Operations
    --
-   procedure start (Self : in out arcana.Client.local.item);
+   procedure open  (Self : in out arcana.Client.local.item);
+   procedure run   (Self : in out arcana.Client.local.item);
+
 
    overriding
    procedure Server_has_shutdown (Self : in out Item);
