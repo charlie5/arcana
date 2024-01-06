@@ -1,4 +1,5 @@
 with
+     arcana.Client.local.UI,
      arcana.Server,
 
      lace.Observer,
@@ -16,20 +17,11 @@ with
 
      openGL.Light,
 
-     glib,
-     glib.Error,
-     glib.Object,
-
-     gtk.Adjustment,
      gtk.Main,
-     gtk.text_Buffer,
-
-     gtkAda.Builder,
 
      system.RPC,
 
      ada.Calendar,
-     ada.Characters.latin_1,
      ada.Exceptions,
      ada.Text_IO;
 
@@ -38,26 +30,6 @@ pragma Unreferenced (gel.Window.setup);
 
 package body arcana.Client.local
 is
-   use glib,
-       glib.Error,
-       glib.Object,
-
-       gtk.Box,
-       gtk.GEntry,
-       gtk.scrolled_Window,
-       gtk.text_Buffer,
-       gtk.text_View,
-
-       gtkAda.Builder,
-
-       ada.Text_IO;
-
-
-   default_Filename : constant String := "./glade/arcana-client.glade";
-   --
-   --  This is the file from which we'll read our UI description.
-
-
    ----------
    -- Utility
    --
@@ -68,67 +40,6 @@ is
 
    procedure log (Message : in String := "")
                   renames ada.Text_IO.put_Line;
-
-
-
-   -------
-   --- Gtk
-   --
-
-   procedure on_Chat_activated (Self : access Gtk_Entry_Record'Class)
-   is
-      Text : constant String := get_Chars (Self, 0);
-   begin
-      Self.delete_Text (0);
-      arcana.Server.add_Chat (From    => my_Client.all'Access,
-                              Message => Text);
-   end on_Chat_activated;
-
-
-
-
-   procedure setup_Gtk (Self : in out Client.local.item)
-   is
-      use gtkAda.Builder;
-
-      Builder :         gtkAda_Builder;
-      Error   : aliased gError;
-   begin
-      --  Create a new Gtkada_Builder object.
-      --
-      gtk_New (Builder);
-
-      --  Read in our XML file.
-      --
-      if Builder.add_from_File (default_Filename,
-                                Error'Access) = 0
-      then
-         put_Line ("Error [Builder.add_from_File]: " & get_Message (Error));
-         Error_free (Error);
-      end if;
-
-      -- Set our widgets.
-      --
-      Self.top_Window    := gtk_Window          (Builder.get_Object ("Top"));
-      Self.gl_Box        := gtk_Box             (Builder.get_Object ("gl_Box"));
-      Self.chat_Entry    := gtk_Entry           (Builder.get_Object ("chat_Entry"));
-      Self.events_Text   := gtk_Text_View       (Builder.get_Object ("events_Text"));
-      Self.events_Window := gtk_scrolled_Window (Builder.get_Object ("events_Window"));
-
-      -- Configure our widgets.
-      --
-      Self.events_Text.set_size_Request (Width  =>  -1,
-                                         Height => 100);
-      -- Set up GTK events.
-      --
-      do_Connect (Builder);
-      Self.chat_Entry.on_Activate (call => on_Chat_activated'Access);
-
-      --  Display our main window and all of it's children.
-      --
-      Self.top_Window.show_All;
-   end setup_Gtk;
-
 
 
 
@@ -255,9 +166,9 @@ is
    --     end case;
    --
    --  end respond;
-   --
-   --
-   --
+
+
+
    --  overriding
    --  procedure respond (Self : in out key_release_Response;   to_Event : in lace.Event.item'Class)
    --  is
@@ -341,7 +252,7 @@ is
    is
       use lace.Event.utility;
    begin
-      gtk.Main.init;     -- Initialize GtkAda.
+      gtk.Main.init;     -- Initialise GtkAda.
 
 
       return Self : Item
@@ -349,28 +260,26 @@ is
          --- Setup GtkAda.
          --
 
-         setup_Gtk (Self);
+         UI.setup_Gtk (Self);
 
-         --  Create a window with a size of 800 x 650.
+         --  Create a window.
          --
-         --  gtk_new (Self.top_Window);
-         Self.top_Window.set_default_Size (Width  => 1920,
-                                           Height => 1080);
-
          Self.Name   := to_unbounded_String (Name);
          Self.Applet := gel.Forge.new_client_Applet (Named         => "Arcana",
                                                      window_Width  => 1920,
                                                      window_Height => 1080,
                                                      space_Kind    => physics.Box2d);
 
+         --  Add our openGL area into the GTK windows open_GL box.
+         --
          Self.gl_Box.pack_Start (gel.Window.gtk.view (Self.Applet.Window).GL_Area);
 
-         --  Show the window.
+         --  Display our main window and all of it's children.
          --
          Self.top_Window.show_All;
 
 
-         -- Connect events.
+         -- Connect GEL events.
          --
          connect ( Self.Applet.local_Observer,
                    Self.Applet.Keyboard,
@@ -401,6 +310,9 @@ is
 
             Self.Applet.Renderer.set (Light);
          end;
+
+
+         my_Client := Self'unchecked_Access;
       end return;
    end to_Client;
 
@@ -587,14 +499,11 @@ is
    procedure start (Self : in out arcana.Client.local.item)
    is
       use gel.Applet.client_world,
-          gel.Math,
-          ada.Text_IO;
+          gel.Math;
+          --  ada.Text_IO;
 
       use type gel.Sprite.view,
                gel.sprite_Id;
-
-      Cycle : Natural := 0;
-
    begin
       log ("Registering client with server.");
 
@@ -605,7 +514,7 @@ is
          arcana.Server.register (Self'unchecked_Access);   -- Register our client with the server.
       exception
          when arcana.Server.Name_already_used =>
-            put_Line (+Self.Name & " is already in use.");
+            log (+Self.Name & " is already in use.");
             check_Server_lives.halt;
             free (Self.Applet);
             return;
@@ -633,7 +542,6 @@ is
       begin
          while Self.Applet.is_open
          loop
-            Cycle        := Cycle        + 1;
             evolve_Count := evolve_Count + 1;
 
             declare
@@ -668,8 +576,7 @@ is
             end if;
 
 
-
-            --- Chat messages.
+            --- Display any new chat messages.
             --
             declare
                use lace.Text;
@@ -681,20 +588,9 @@ is
 
                for i in 1 .. Count
                loop
-                  Self.events_Text.get_Buffer.insert_at_Cursor (  to_String (Messages (i))
-                                                                  & ada.Characters.latin_1.LF);
+                  UI.add_chat_Line (Self, +Messages (i));
                end loop;
-
-               if Count > 0
-               then
-                  declare
-                     Adjuster : constant gtk.Adjustment.gtk_Adjustment := Self.events_Window.get_vAdjustment;
-                  begin
-                     Adjuster.set_Value (Adjuster.get_Upper);
-                  end;
-               end if;
             end;
-
 
 
             --- Loop exit.
@@ -738,6 +634,7 @@ is
 
          raise;
    end start;
+
 
 
    -- 'last_chance_Handler' is commented out to avoid multiple definitions

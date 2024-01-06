@@ -23,16 +23,13 @@ with
 package arcana.Client.local
 --
 -- Provides a local client.
--- Names must be unique.
+-- Client names must be unique.
 --
 is
    type Item is limited new lace.Any.limited_item
                         and arcana.Client.item with private;
 
    type View is access all Item'Class;
-
-   my_Client : View;
-
 
 
    -- Forge
@@ -128,6 +125,13 @@ private
 
 
    function client_World (Self : in Item) return gel.World.client.view;
+
+
+
+   my_Client : Client.local.view;
+   --
+   -- Provide a convenience access to the client. This simplifies many of the event responses.
+   -- There should cause no problems in a 'distributed' build but limits a 'fused' build to a single client.
 
 
 end arcana.Client.local;
