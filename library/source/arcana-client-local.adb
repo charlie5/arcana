@@ -281,20 +281,20 @@ is
 
          -- Connect GEL events.
          --
-         connect ( Self.Applet.local_Observer,
-                   Self.Applet.Keyboard,
-                   Self.my_key_press_Response'unchecked_Access,
-                  +gel.Keyboard.key_press_Event'Tag);
+         connect (the_Observer  =>  Self.Applet.local_Observer,
+                  to_Subject    =>  Self.Applet.Keyboard,
+                  with_Response =>  Self.my_key_press_Response'unchecked_Access,
+                  to_event_Kind => +gel.Keyboard.key_press_Event'Tag);
 
-         connect ( Self.Applet.local_Observer,
-                   Self.Applet.Keyboard,
-                   Self.my_key_release_Response'unchecked_Access,
-                  +gel.Keyboard.key_release_Event'Tag);
+         connect (the_Observer  =>  Self.Applet.local_Observer,
+                  to_Subject    =>  Self.Applet.Keyboard,
+                  with_Response =>  Self.my_key_release_Response'unchecked_Access,
+                  to_event_Kind => +gel.Keyboard.key_release_Event'Tag);
 
-         connect ( Self.Applet.local_Observer,
-                   Self.client_World.all'Access,
-                   the_Sprite_added_Response'unchecked_Access,
-                  +gel.remote.World.sprite_added_Event'Tag);
+         connect (the_Observer  =>  Self.Applet.local_Observer,
+                  to_Subject    =>  Self.client_World.all'Access,
+                  with_Response =>  the_Sprite_added_Response'unchecked_Access,
+                  to_event_Kind => +gel.remote.World.sprite_added_Event'Tag);
 
 
          Self.Applet.Camera.Site_is ([0.0, 0.0, 20.0]);
