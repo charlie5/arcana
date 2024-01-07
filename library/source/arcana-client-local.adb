@@ -197,6 +197,9 @@ is
    --
 
 
+   --- Sprite clicks.
+   --
+
    type Sprite_clicked_Response is new lace.Response.item with
       record
          Sprite : gel.Sprite.view;
@@ -215,6 +218,10 @@ is
 
 
 
+
+   --- Sprite added.
+   --
+
    type Sprite_added_Response is new lace.Response.item with null record;
 
    overriding
@@ -228,6 +235,8 @@ is
    begin
       log ("'" & the_Sprite.Name & "' added.");
 
+      --- Add a 'clicked' response to each newly added sprite.
+      --
       new_Response.Sprite := the_Sprite;
 
       connect (the_Observer  =>  my_Client.Applet.local_Observer,
@@ -239,6 +248,24 @@ is
 
    the_Sprite_added_Response : aliased Sprite_added_Response;
 
+
+
+
+   --- Space clicked.
+   --
+
+   type Space_clicked_Response is new lace.Response.item with null record;
+
+   overriding
+   procedure respond (Self : in out Space_clicked_Response;  to_Event : in lace.Event.Item'Class)
+   is
+      the_Event : constant gel.Events.space_click_down_Event := gel.Events.space_click_down_Event (to_Event);
+   begin
+      log ("Space clicked. " & the_Event.mouse_Button'Image);
+   end respond;
+
+
+   the_Space_clicked_Response : aliased Space_clicked_Response;
 
 
 
@@ -291,7 +318,14 @@ is
                   with_Response =>  the_Sprite_added_Response'unchecked_Access,
                   to_event_Kind => +gel.remote.World.sprite_added_Event'Tag);
 
+         connect (the_Observer  =>  Self.Applet.local_Observer,
+                  to_Subject    =>  Self.Applet.all'Access,
+                  with_Response =>  the_Space_clicked_Response'unchecked_Access,
+                  to_event_Kind => +gel.Events.space_click_down_Event'Tag);
 
+
+         -- Set up the camera.
+         --
          Self.Applet.Camera.Site_is ([0.0, 0.0, 20.0]);
 
 
