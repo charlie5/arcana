@@ -5,7 +5,6 @@ private
 with
      lace.make_Subject,
      lace.make_Observer,
-     lace.Response,
 
      gel.Applet.client_world,
      gel.World .client,
@@ -22,8 +21,8 @@ with
 
 package arcana.Client.local
 --
--- Provides a local client.
--- Client names must be unique.
+--  Provides a local client.
+--  Client names must be unique.
 --
 is
    type Item is limited new lace.Any.limited_item
@@ -75,18 +74,6 @@ private
    package Subject  is new lace.make_Subject  (Observer        .item);
 
 
-   --------------
-   --- Gel Events
-   --
-   type   key_press_Response (my_Client : access arcana.Client.local.item) is new lace.Response.item with null record;
-   type key_release_Response (my_Client : access arcana.Client.local.item) is new lace.Response.item with null record;
-
-   overriding
-   procedure respond (Self : in out   key_press_Response;   to_Event : in lace.Event.item'Class);
-   overriding
-   procedure respond (Self : in out key_release_Response;   to_Event : in lace.Event.item'Class);
-
-
    use gtk.Box,
        gtk.Window,
 
@@ -118,11 +105,6 @@ private
          pc_sprite_Id : gel.sprite_Id  := gel.null_sprite_Id;
          pc_Sprite    : gel.Sprite.view;
          Applet       : gel.Applet.client_world.view;
-
-         -- Gel Events.
-         --
-         my_key_press_Response   : aliased   key_press_Response (Item'Access);
-         my_key_release_Response : aliased key_release_Response (Item'Access);
       end record;
 
 
