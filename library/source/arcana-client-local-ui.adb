@@ -7,6 +7,7 @@ with
 
      gtk.Adjustment,
      gtk.text_Buffer,
+     gtk.Main,
 
      gtkAda.Builder,
 
@@ -55,6 +56,8 @@ is
       Builder :         gtkAda_Builder;
       Error   : aliased gError;
    begin
+      gtk.Main.init;     -- Initialise GtkAda.
+
       --  Create a new Gtkada_Builder object.
       --
       gtk_New (Builder);

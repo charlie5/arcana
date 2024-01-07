@@ -17,8 +17,6 @@ with
 
      openGL.Light,
 
-     gtk.Main,
-
      system.RPC,
 
      ada.Calendar,
@@ -252,9 +250,6 @@ is
    is
       use lace.Event.utility;
    begin
-      gtk.Main.init;     -- Initialise GtkAda.
-
-
       return Self : Item
       do
          --- Setup GtkAda.
