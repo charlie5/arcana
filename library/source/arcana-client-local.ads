@@ -102,9 +102,14 @@ private
 
          -- Gel objects.
          --
-         pc_sprite_Id : gel.sprite_Id  := gel.null_sprite_Id;
-         pc_Sprite    : gel.Sprite.view;
-         Applet       : gel.Applet.client_world.view;
+         pc_sprite_Id  : gel.sprite_Id  := gel.null_sprite_Id;
+         pc_Sprite     : gel.Sprite.view;
+         Applet        : gel.Applet.client_world.view;
+
+         -- Targetting
+         --
+         target_Marker : gel.Sprite.view;
+         Target        : gel.Sprite.view;
       end record;
 
 

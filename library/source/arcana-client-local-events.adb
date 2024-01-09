@@ -136,6 +136,8 @@ is
    is
    begin
       log ("'" & Self.Sprite.Name & "' clicked.");
+
+      my_Client.Target := Self.Sprite;
    end respond;
 
 
@@ -185,7 +187,10 @@ is
    is
       the_Event : constant gel.Events.space_click_down_Event := gel.Events.space_click_down_Event (to_Event);
    begin
-      log ("Space clicked. " & the_Event.mouse_Button'Image);
+      log ("Space clicked. " & the_Event.world_Site'Image);
+
+      my_Client.target_Marker.Site_is (the_Event.world_Site);
+      my_Client.Target := null;
    end respond;
 
 

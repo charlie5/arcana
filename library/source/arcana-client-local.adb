@@ -15,6 +15,7 @@ with
      Physics,
 
      openGL.Light,
+     openGL.Palette,
 
      system.RPC,
 
@@ -46,6 +47,8 @@ is
 
    function to_Client (Name : in String) return Item
    is
+      use openGL;
+
    begin
       return Self : Item
       do
@@ -89,6 +92,25 @@ is
             Self.Applet.Renderer.set (Light);
          end;
 
+         -- Reserve Ids for use by the server world.
+         --
+         Self.client_World.reserve_Ids (Before => 50_000_000);
+
+         -- Create our target selection marker.
+         --
+         Self.target_Marker := gel.Forge.new_circle_Sprite (in_World    => Self.Applet.client_World.all'Access,
+                                                            Name        => "target Marker",
+                                                            Site        => gel.math.Origin_3D,
+                                                            Mass        => 0.0,
+                                                            is_Tangible => False,
+                                                            Radius      => 0.666,
+                                                            Color       => (Palette.White, Opacity => 0.666),
+                                                            Sides       => 6,
+                                                            Fill        => False);
+         Self.Applet.client_World.add (Self.target_Marker);
+
+         --- Set the 'my_Client' convenience access in subprogams (ie event responses).
+         --
          my_Client := Self'unchecked_Access;
       end return;
    end to_Client;
@@ -357,9 +379,19 @@ is
             end if;
 
 
+            --- Move the camera to follow the players sprite.
+            --
             if Self.pc_Sprite /= null
             then
                Self.Applet.Camera.Site_is (Self.pc_Sprite.Site + [0.0, 0.0, 30.0]);
+            end if;
+
+
+            --- Move the target marker to follow the targeted sprite.
+            --
+            if Self.Target /= null
+            then
+               Self.target_Marker.Site_is (Self.Target.Site);
             end if;
 
 

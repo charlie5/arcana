@@ -291,7 +291,7 @@ is
                                                     Bounce   => 0.0,
                                                     Friction => 0.0,
                                                     Radius   => 0.5,
-                                                    Color    => Green,
+                                                    Color    => (Green, openGL.Opaque),
                                                     Texture  => openGL.to_Asset ("assets/human.png"));
          the_Player.user_Data_is (new sprite_Data);
          the_World.add (the_Player);
