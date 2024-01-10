@@ -96,8 +96,14 @@ private
          top_Window    : gtk_Window;
          gl_Box        : gtk_vBox;
          chat_Entry    : gtk.gEntry.gtk_gEntry;
+
          events_Text   : gtk.Text_View.gtk_Text_View;
+         chat_Text     : gtk.Text_View.gtk_Text_View;
+         melee_Text    : gtk.Text_View.gtk_Text_View;
+
          events_Window : gtk.scrolled_Window.gtk_scrolled_Window;
+         chat_Window   : gtk.scrolled_Window.gtk_scrolled_Window;
+         melee_Window  : gtk.scrolled_Window.gtk_scrolled_Window;
 
 
          -- Gel objects.

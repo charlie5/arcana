@@ -76,8 +76,14 @@ is
       Self.top_Window    := gtk_Window          (Builder.get_Object ("Top"));
       Self.gl_Box        := gtk_Box             (Builder.get_Object ("gl_Box"));
       Self.chat_Entry    := gtk_Entry           (Builder.get_Object ("chat_Entry"));
+
       Self.events_Text   := gtk_Text_View       (Builder.get_Object ("events_Text"));
+      Self.  chat_Text   := gtk_Text_View       (Builder.get_Object (  "chat_Text"));
+      Self. melee_Text   := gtk_Text_View       (Builder.get_Object ( "melee_Text"));
+
       Self.events_Window := gtk_scrolled_Window (Builder.get_Object ("events_Window"));
+      Self.  chat_Window := gtk_scrolled_Window (Builder.get_Object (  "chat_Window"));
+      Self. melee_Window := gtk_scrolled_Window (Builder.get_Object ( "melee_Window"));
 
       --  Configure our widgets.
       --
@@ -96,7 +102,7 @@ is
 
 
 
-   procedure add_chat_Line (Self : in Client.local.item;   Message : in String)
+   procedure add_events_Line (Self : in Client.local.item;   Message : in String)
    is
    begin
       Self.events_Text.get_Buffer.insert_at_Cursor (Message & ada.Characters.latin_1.LF);
@@ -106,7 +112,35 @@ is
       begin
          Adjuster.set_Value (Adjuster.get_Upper);
       end;
+   end add_events_Line;
+
+
+
+   procedure add_chat_Line (Self : in Client.local.item;   Message : in String)
+   is
+   begin
+      Self.chat_Text.get_Buffer.insert_at_Cursor (Message & ada.Characters.latin_1.LF);
+
+      declare
+         Adjuster : constant gtk.Adjustment.gtk_Adjustment := Self.chat_Window.get_vAdjustment;
+      begin
+         Adjuster.set_Value (Adjuster.get_Upper);
+      end;
    end add_chat_Line;
+
+
+
+   procedure add_melee_Line (Self : in Client.local.item;   Message : in String)
+   is
+   begin
+      Self.melee_Text.get_Buffer.insert_at_Cursor (Message & ada.Characters.latin_1.LF);
+
+      declare
+         Adjuster : constant gtk.Adjustment.gtk_Adjustment := Self.events_Window.get_vAdjustment;
+      begin
+         Adjuster.set_Value (Adjuster.get_Upper);
+      end;
+   end add_melee_Line;
 
 
 end arcana.Client.local.UI;

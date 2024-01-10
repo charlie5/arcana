@@ -5,6 +5,9 @@ package arcana.Client.local.UI
 --
 is
    procedure setup_Gtk     (Self : in out Client.local.item);
-   procedure add_chat_Line (Self : in     Client.local.item;   Message : in String);
+
+   procedure add_events_Line (Self : in     Client.local.item;   Message : in String);
+   procedure   add_chat_Line (Self : in     Client.local.item;   Message : in String);
+   procedure  add_melee_Line (Self : in     Client.local.item;   Message : in String);
 
 end arcana.Client.local.UI;
