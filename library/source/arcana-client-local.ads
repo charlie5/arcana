@@ -11,11 +11,13 @@ with
      gel.Sprite,
 
      gtk.Box,
+     gtk.Label,
      gtk.gEntry,
      gtk.scrolled_Window,
      gtk.Text_View,
      gtk.Window,
 
+     ada.Text_IO,
      ada.Strings.unbounded;
 
 
@@ -105,28 +107,45 @@ private
          chat_Window   : gtk.scrolled_Window.gtk_scrolled_Window;
          melee_Window  : gtk.scrolled_Window.gtk_scrolled_Window;
 
-
          -- Gel objects.
          --
          pc_sprite_Id  : gel.sprite_Id  := gel.null_sprite_Id;
          pc_Sprite     : gel.Sprite.view;
          Applet        : gel.Applet.client_world.view;
 
-         -- Targetting
+         -- Targeting.
          --
          target_Marker : gel.Sprite.view;
          Target        : gel.Sprite.view;
+         target_Name   : gtk.Label.gtk_Label;
+
+         -- Movement.
+         --
+         Pace : Pace_t := Halt;
+
       end record;
 
 
+
+   ---------------
+   --- Convenience
+   --
    function client_World (Self : in Item) return gel.World.client.view;
-
-
 
    my_Client : Client.local.view;
    --
    -- Provide a convenience access to the client. This simplifies many of the event responses.
    -- There should cause no problems in a 'distributed' build but limits a 'fused' build to a single client.
 
+
+
+   -----------
+   --- Utility
+   --
+   procedure log (Message : in String := "")
+                  renames ada.Text_IO.put_Line;
+
+   function "+"  (From : in unbounded_String) return String
+                  renames to_String;
 
 end arcana.Client.local;

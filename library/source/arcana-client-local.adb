@@ -20,27 +20,13 @@ with
      system.RPC,
 
      ada.Calendar,
-     ada.Exceptions,
-     ada.Text_IO;
+     ada.Exceptions;
 
 pragma Unreferenced (gel.Window.setup);
 
 
 package body arcana.Client.local
 is
-   ----------
-   -- Utility
-   --
-
-   function "+" (From : in unbounded_String) return String
-                 renames to_String;
-
-
-   procedure log (Message : in String := "")
-                  renames ada.Text_IO.put_Line;
-
-
-
    --------
    -- Forge
    --

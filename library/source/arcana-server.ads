@@ -38,6 +38,13 @@ is
       end record;
 
 
+   type pc_pace_Event is new lace.Event.item with
+      record
+         sprite_Id : gel.sprite_Id;
+         Pace      : arcana.Pace_t;
+      end record;
+
+
    procedure add_Chat (From    : in Client.view;
                        Message : in String);
 

@@ -6,6 +6,8 @@ with
      glib.Object,
 
      gtk.Adjustment,
+     gtk.radio_Button,
+     gtk.toggle_Button,
      gtk.text_Buffer,
      gtk.Main,
 
@@ -22,7 +24,9 @@ is
        glib.Object,
 
        gtk.Box,
-       gtk.GEntry,
+       gtk.gEntry,
+       gtk.toggle_Button,
+       gtk.radio_Button,
        gtk.scrolled_Window,
        gtk.text_Buffer,
        gtk.text_View,
@@ -37,6 +41,28 @@ is
    --  This is the file from which we'll read our GTK UI description.
 
 
+   halt_Button     : gtk_radio_Button;
+   walk_Button     : gtk_radio_Button;
+   jog_Button      : gtk_radio_Button;
+   run_Button      : gtk_radio_Button;
+   dash_Button     : gtk_radio_Button;
+
+
+
+   procedure update_UI
+   is
+   begin
+      case my_Client.Pace
+      is
+         when Halt => halt_Button.set_Active (True);
+         when others => null;
+      end case;
+
+   end update_UI;
+
+
+
+
    procedure on_Chat_activated (Self : access Gtk_Entry_Record'Class)
    is
       Text : constant String := get_Chars (Self, 0);
@@ -48,10 +74,106 @@ is
 
 
 
+   --- Paces
+   --
+
+   procedure on_halt_Pace_selected (Self : access Gtk_Toggle_Button_Record'Class)
+   is
+      use arcana.Server;
+   begin
+      if Self.get_Active
+      then
+         log ("Setting pace to halt.");
+         my_Client.Pace := Halt;
+         update_UI;
+
+         my_Client.emit (pc_pace_Event' (sprite_Id => my_Client.pc_sprite_Id,
+                                         Pace      => Halt));
+         my_Client.chat_Entry.grab_Focus;     -- Change focus so that left/right arrow keys do not affect pace.
+      end if;
+   end on_halt_Pace_selected;
+
+
+
+   procedure on_walk_Pace_selected (Self : access Gtk_Toggle_Button_Record'Class)
+   is
+      use arcana.Server;
+   begin
+      if Self.get_Active
+      then
+         log ("Setting pace to walk.");
+         my_Client.Pace := Walk;
+         update_UI;
+
+         my_Client.emit (pc_pace_Event' (sprite_Id => my_Client.pc_sprite_Id,
+                                         Pace      => Walk));
+         my_Client.chat_Entry.grab_Focus;     -- Change focus so that left/right arrow keys do not affect pace.
+      end if;
+   end on_walk_Pace_selected;
+
+
+
+   procedure on_jog_Pace_selected (Self : access Gtk_Toggle_Button_Record'Class)
+   is
+      use arcana.Server;
+   begin
+      if Self.get_Active
+      then
+         log ("Setting pace to jog.");
+         my_Client.Pace := Jog;
+         update_UI;
+
+         my_Client.emit (pc_pace_Event' (sprite_Id => my_Client.pc_sprite_Id,
+                                         Pace      => Jog));
+         my_Client.chat_Entry.grab_Focus;     -- Change focus so that left/right arrow keys do not affect pace.
+      end if;
+   end on_jog_Pace_selected;
+
+
+
+   procedure on_run_Pace_selected (Self : access Gtk_Toggle_Button_Record'Class)
+   is
+      use arcana.Server;
+   begin
+      if Self.get_Active
+      then
+         log ("Setting pace to run.");
+         my_Client.Pace := Run;
+         update_UI;
+
+         my_Client.emit (pc_pace_Event' (sprite_Id => my_Client.pc_sprite_Id,
+                                         Pace      => Run));
+         my_Client.chat_Entry.grab_Focus;     -- Change focus so that left/right arrow keys do not affect pace.
+      end if;
+   end on_run_Pace_selected;
+
+
+
+   procedure on_dash_Pace_selected (Self : access Gtk_Toggle_Button_Record'Class)
+   is
+      use arcana.Server;
+   begin
+      if Self.get_Active
+      then
+         log ("Setting pace to dash.");
+         my_Client.Pace := Dash;
+         update_UI;
+
+         my_Client.emit (pc_pace_Event' (sprite_Id => my_Client.pc_sprite_Id,
+                                         Pace      => Dash));
+         my_Client.chat_Entry.grab_Focus;     -- Change focus so that left/right arrow keys do not affect pace.
+      end if;
+   end on_dash_Pace_selected;
+
+
+
+
+
 
    procedure setup_Gtk (Self : in out Client.local.item)
    is
-      use gtkAda.Builder;
+      use gtk.Label,
+          gtkAda.Builder;
 
       Builder :         gtkAda_Builder;
       Error   : aliased gError;
@@ -85,6 +207,22 @@ is
       Self.  chat_Window := gtk_scrolled_Window (Builder.get_Object (  "chat_Window"));
       Self. melee_Window := gtk_scrolled_Window (Builder.get_Object ( "melee_Window"));
 
+      Self.target_Name   := gtk_Label           (Builder.get_Object ("target_Name"));
+
+      -- Pace radio buttons.
+      --
+      halt_Button := gtk_radio_Button (Builder.get_Object (Name => "halt_Button"));
+      walk_Button := gtk_radio_Button (Builder.get_Object (Name => "walk_Button"));
+      jog_Button  := gtk_radio_Button (Builder.get_Object (Name =>  "jog_Button"));
+      run_Button  := gtk_radio_Button (Builder.get_Object (Name =>  "run_Button"));
+      dash_Button := gtk_radio_Button (Builder.get_Object (Name => "dash_Button"));
+
+      halt_Button.on_Toggled (on_halt_Pace_selected'Access);
+      walk_Button.on_Toggled (on_walk_Pace_selected'Access);
+      jog_Button .on_Toggled ( on_jog_Pace_selected'Access);
+      run_Button .on_Toggled ( on_run_Pace_selected'Access);
+      dash_Button.on_Toggled (on_dash_Pace_selected'Access);
+
       --  Configure our widgets.
       --
       Self.events_Text.set_size_Request (Width  =>  -1,
@@ -101,6 +239,10 @@ is
    end setup_Gtk;
 
 
+
+   -------------------------------------------------------
+   --- Add messages to the events, chat and melee windows.
+   --
 
    procedure add_events_Line (Self : in Client.local.item;   Message : in String)
    is

@@ -138,6 +138,7 @@ is
       log ("'" & Self.Sprite.Name & "' clicked.");
 
       my_Client.Target := Self.Sprite;
+      my_Client.target_Name.set_Label (Self.Sprite.Name);
    end respond;
 
 
@@ -158,7 +159,7 @@ is
       the_Sprite   : constant gel.Sprite.view                     := my_Client.Applet.World.fetch_Sprite (the_Event.Sprite);
       new_Response : constant Sprite_clicked_Response_view        := new Sprite_clicked_Response;
    begin
-      log ("'" & the_Sprite.Name & "' added.");
+      --  log ("'" & the_Sprite.Name & "' added.");
 
       --- Add a 'clicked' response to each newly added sprite.
       --
@@ -187,8 +188,9 @@ is
    is
       the_Event : constant gel.Events.space_click_down_Event := gel.Events.space_click_down_Event (to_Event);
    begin
-      log ("Space clicked. " & the_Event.world_Site'Image);
+      --  log ("Space clicked. " & the_Event.world_Site'Image);
 
+      my_Client.target_Name.set_Label ("Ground");
       my_Client.target_Marker.Site_is (the_Event.world_Site);
       my_Client.Target := null;
    end respond;

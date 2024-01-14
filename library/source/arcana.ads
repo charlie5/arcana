@@ -4,4 +4,9 @@ package Arcana
 --
 is
    pragma Pure;
+
+
+   type Pace_t is (Halt, Walk, Jog, Run, Dash);
+
+
 end Arcana;
