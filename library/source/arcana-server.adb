@@ -595,14 +595,12 @@ is
           gel.Math.Random;
 
       the_Boulders : constant openGL.Image    := openGL.IO.to_Image (openGL.to_Asset ("assets/terrain/boulders.png"));
-      --  the_Boulders : constant openGL.Image    := openGL.IO.to_Image (openGL.to_Asset ("assets/terrain/trees.png"));
-      Count        :          Natural         := 0;
       half_Width   : constant gel.Math.Real   := gel.Math.Real (the_Boulders'Length (1)) / 2.0;
       half_Height  : constant gel.Math.Real   := gel.Math.Real (the_Boulders'Length (2)) / 2.0;
-      Color        :          openGL.rgb_Color;
       Counter      :          Natural         := 0;
-
-      the_Boulder  : gel.Sprite.view;
+      Count        :          Natural         := 0;
+      Color        :          openGL.rgb_Color;
+      the_Boulder  :          gel.Sprite.view;
 
    begin
       for Row in the_Boulders'Range (1)
@@ -613,8 +611,6 @@ is
 
             if to_Color (Color) /= Black
             then
-               --  log ("Tree color:" & Color'Image);
-
                Counter     := Counter + 1;
                the_Boulder := gel.Forge.new_circle_Sprite (in_World => the_World'Access,
                                                            Name     => "Boulder ~" & Counter'Image,
@@ -761,7 +757,7 @@ is
                   declare
                      use type gel.Sprite.view;
 
-                     the_sprite_Data :          sprite_Data renames sprite_Data (Each.user_Data.all);
+                     the_sprite_Data : sprite_Data renames sprite_Data (Each.user_Data.all);
 
                      pace_Multiplier : constant array (Pace_t) of Real := [Halt => 0.0,
                                                                            Walk => 0.5,
