@@ -27,6 +27,9 @@ is
    function World return gel.remote.World.view;
 
 
+   -------------
+   --- Movement.
+   --
 
    type move_Direction is (Forward, Backward, Left, Right);
 
@@ -34,7 +37,7 @@ is
       record
          sprite_Id : gel.sprite_Id;
          Direction : move_Direction;
-         On        : Boolean;            -- When On start moving, else stop moving.
+         On        : Boolean;            -- When 'On' then start moving, else stop moving.
       end record;
 
 
@@ -44,6 +47,23 @@ is
          Pace      : arcana.Pace_t;
       end record;
 
+
+
+   -------------
+   --- Targeting
+   --
+
+   type target_ground_Event is new lace.Event.item with
+      record
+         sprite_Id   : gel.sprite_Id;         -- The sprite which has targeted the ground.
+         ground_Site : gel.math.Vector_3;     -- Site where the ground has been targeted.
+      end record;
+
+
+
+      ---------
+      --- Chat.
+      --
 
    procedure add_Chat (From    : in Client.view;
                        Message : in String);

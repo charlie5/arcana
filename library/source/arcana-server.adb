@@ -203,13 +203,18 @@ is
    --- Sprite Data
    --
 
+   null_Site : constant gel.math.Vector_3 := [gel.math.Real'Last,
+                                              gel.math.Real'Last,
+                                              gel.math.Real'Last];
+
+
    type sprite_Data is new gel.Sprite.any_user_Data with
       record
          Pace        : Pace_t            := Halt;
          Movement    : gel.Math.Vector_3 := gel.Math.Origin_3D;
          Spin        : gel.Math.Degrees  :=  0.0;
          Target      : gel.Sprite.view;
-         target_Site : gel.Math.Vector_3 := gel.Math.Origin_3D;
+         target_Site : gel.Math.Vector_3 := null_Site; -- gel.Math.Origin_3D;
       end record;
 
 
@@ -266,11 +271,7 @@ is
    --- pc_pace_Response
    --
 
-   type pc_pace_Response is new lace.Response.item with
-      record
-         null;
-      end record;
-
+   type pc_pace_Response is new lace.Response.item with null record;
 
    overriding
    procedure respond (Self : in out pc_pace_Response;   to_Event : in lace.Event.item'Class)
@@ -284,6 +285,39 @@ is
 
 
    the_pc_pace_Response : aliased pc_pace_Response;
+
+
+
+   --------------------------
+   --- target_ground_Response
+   --
+
+   type target_ground_Response is new lace.Response.item with
+      record
+         null; -- targeting_Sprite : gel.sprite_Id;
+      end record;
+
+
+   overriding
+   procedure respond (Self : in out target_ground_Response;   to_Event : in lace.Event.item'Class)
+   is
+      use Gel;
+
+      the_Event       : constant target_ground_Event     := target_ground_Event     (to_Event);
+      the_Sprite      :          gel.Sprite.view    renames the_World.fetch_Sprite  (the_Event.sprite_Id);
+      the_sprite_Data :          server.sprite_Data renames server.sprite_Data      (the_Sprite.user_Data.all);
+
+   begin
+      --  if the_Event.sprite_Id = null_sprite_Id
+      --  then   -- The ground has been targeted.
+         the_sprite_Data.Target      := null;
+         the_sprite_Data.target_Site := the_Event.ground_Site;
+      --  end if;
+   end respond;
+
+
+   the_target_ground_Response : aliased target_ground_Response;
+
 
 
 
@@ -357,6 +391,11 @@ is
                                   to_Subject    => the_Client.as_Subject,
                                   with_Response => the_pc_pace_Response'Access,
                                   to_Event_Kind => lace.Event.utility.to_Kind (pc_pace_Event'Tag));
+
+      lace.Event.utility.connect (the_Observer  => the_World.local_Observer,
+                                  to_Subject    => the_Client.as_Subject,
+                                  with_Response => the_target_ground_Response'Access,
+                                  to_Event_Kind => lace.Event.utility.to_Kind (target_ground_Event'Tag));
    end register;
 
 
@@ -546,6 +585,106 @@ is
 
 
 
+   -------------------
+   --- Set up terrain.
+   --
+
+   procedure set_up_Boulders
+   is
+      use openGL,
+          gel.Math.Random;
+
+      the_Boulders : constant openGL.Image    := openGL.IO.to_Image (openGL.to_Asset ("assets/terrain/boulders.png"));
+      --  the_Boulders : constant openGL.Image    := openGL.IO.to_Image (openGL.to_Asset ("assets/terrain/trees.png"));
+      Count        :          Natural         := 0;
+      half_Width   : constant gel.Math.Real   := gel.Math.Real (the_Boulders'Length (1)) / 2.0;
+      half_Height  : constant gel.Math.Real   := gel.Math.Real (the_Boulders'Length (2)) / 2.0;
+      Color        :          openGL.rgb_Color;
+      Counter      :          Natural         := 0;
+
+      the_Boulder  : gel.Sprite.view;
+
+   begin
+      for Row in the_Boulders'Range (1)
+      loop
+         for Col in the_Boulders'Range (2)
+         loop
+            Color := the_Boulders (Row, Col);
+
+            if to_Color (Color) /= Black
+            then
+               --  log ("Tree color:" & Color'Image);
+
+               Counter     := Counter + 1;
+               the_Boulder := gel.Forge.new_circle_Sprite (in_World => the_World'Access,
+                                                           Name     => "Boulder ~" & Counter'Image,
+                                                           Site     => [gel.Math.Real (Col) - half_Width  + random_Real (Lower => -0.25, Upper => 0.25),
+                                                                        gel.Math.Real (Row) - half_Height + random_Real (Lower => -0.25, Upper => 0.25),
+                                                                        0.0                               + random_Real (Lower => -0.01, Upper => 0.01)],     -- Prevent openGL from flipping visuals due to being all at same 'Z' position.
+                                                           Mass     => 0.0,
+                                                           Bounce   => 1.0,
+                                                           Friction => 0.0,
+                                                           Radius   => 0.5 + random_Real (Lower => -0.25, Upper => 0.25),
+                                                           Texture  => openGL.to_Asset ("assets/rock.png"));
+               the_World.add (the_Boulder);
+
+               Count := Count + 1;
+            end if;
+         end loop;
+      end loop;
+
+      log ("Boulder count:" & Count'Image);
+   end set_up_Boulders;
+
+
+
+   procedure set_up_Trees
+   is
+      use openGL,
+          gel.Math.Random;
+
+      the_Trees    : constant openGL.Image    := openGL.IO.to_Image (openGL.to_Asset ("assets/terrain/trees.png"));
+      Count        :          Natural         := 0;
+      half_Width   : constant gel.Math.Real   := gel.Math.Real (the_Trees'Length (1)) / 2.0;
+      half_Height  : constant gel.Math.Real   := gel.Math.Real (the_Trees'Length (2)) / 2.0;
+      Color        :          openGL.rgb_Color;
+      Counter      :          Natural         := 0;
+
+      the_Tree     : gel.Sprite.view;
+
+   begin
+      for Row in the_Trees'Range (1)
+      loop
+         for Col in the_Trees'Range (2)
+         loop
+            Color := the_Trees (Row, Col);
+
+            if to_Color (Color) /= Black
+            then
+               --  log ("Tree color:" & Color'Image);
+
+               Counter  := Counter + 1;
+               the_Tree := gel.Forge.new_circle_Sprite (in_World => the_World'Access,
+                                                        Name     => "Tree ~" & Counter'Image,
+                                                        Site     => [gel.Math.Real (Col) - half_Width  + random_Real (Lower => -0.25, Upper => 0.25),
+                                                                     gel.Math.Real (Row) - half_Height + random_Real (Lower => -0.25, Upper => 0.25),
+                                                                     0.0                               + random_Real (Lower => -0.01 - 0.01, Upper => 0.01 - 0.01)],     -- Prevent openGL from flipping visuals due to being all at same 'Z' position.
+                                                        Mass     => 0.0,
+                                                        Bounce   => 1.0,
+                                                        Friction => 0.0,
+                                                        Radius   => 0.5 + random_Real (Lower => -0.25, Upper => 0.25),
+                                                        Texture  => openGL.to_Asset ("assets/tree7.png"));
+               the_World.add (the_Tree);
+               Count := Count + 1;
+            end if;
+         end loop;
+      end loop;
+
+      log ("Tree count:" & Count'Image);
+   end set_up_Trees;
+
+
+
 
    ---------
    --- Start
@@ -579,51 +718,11 @@ is
 
 
       if
-        -- True
-        False
+         True
+        --  False
       then
-         declare
-            use openGL,
-                gel.Math.Random;
-
-            the_Trees   : constant openGL.Image    := openGL.IO.to_Image (openGL.to_Asset ("assets/terrain/trees.png"));
-            Count       :          Natural         := 0;
-            half_Width  : constant gel.Math.Real   := gel.Math.Real (the_Trees'Length (1)) / 2.0;
-            half_Height : constant gel.Math.Real   := gel.Math.Real (the_Trees'Length (2)) / 2.0;
-            Color       :          openGL.rgb_Color;
-            Counter     :          Natural         := 0;
-         begin
-            for Row in the_Trees'Range (1)
-            loop
-               for Col in the_Trees'Range (2)
-               loop
-                  Color := the_Trees (Row, Col);
-
-                  if to_Color (Color) /= Black
-                  then
-                     --  log ("Tree color:" & Color'Image);
-
-                     Counter      := Counter + 1;
-                     the_one_Tree := gel.Forge.new_circle_Sprite (in_World => the_World'Access,
-                                                                  Name     => "Tree ~" & Counter'Image,
-                                                                  Site     => [gel.Math.Real (Col) - half_Width  + random_Real (Lower => -0.25, Upper => 0.25),
-                                                                               gel.Math.Real (Row) - half_Height + random_Real (Lower => -0.25, Upper => 0.25),
-                                                                               0.0                               + random_Real (Lower => -0.01, Upper => 0.01)],     -- Prevent openGL from flipping visuals due to being all at same 'Z' position.
-                                                                  Mass     => 0.0,
-                                                                  Bounce   => 1.0,
-                                                                  Friction => 0.0,
-                                                                  Radius   => 0.5,
-                                                                  --  Color    => Green,
-                                                                  Texture  => openGL.to_Asset ("assets/tree7.png"));
-                     the_World.add (the_one_Tree);
-
-                     Count := Count + 1;
-                  end if;
-               end loop;
-            end loop;
-
-            log ("Tree count:" & Count'Image);
-         end;
+         set_up_Boulders;
+         set_up_Trees;
       end if;
 
 
@@ -662,23 +761,47 @@ is
                   declare
                      use type gel.Sprite.view;
 
-                     the_sprite_Data : sprite_Data renames sprite_Data (Each.user_Data.all);
+                     the_sprite_Data :          sprite_Data renames sprite_Data (Each.user_Data.all);
 
                      pace_Multiplier : constant array (Pace_t) of Real := [Halt => 0.0,
                                                                            Walk => 0.5,
                                                                            Jog  => 1.0,
                                                                            Run  => 2.0,
-                                                                           Dash => 3.0];
+                                                                           Dash => 4.0];
+                     --  pace_Multiplier : constant array (Pace_t) of Real := [Halt => 1.0,
+                     --                                                        Walk => 1.0,
+                     --                                                        Jog  => 1.0,
+                     --                                                        Run  => 1.0,
+                     --                                                        Dash => 1.0];
                   begin
+                     Each.Speed_is (  the_sprite_Data.Movement
+                                    * pace_Multiplier (the_sprite_Data.Pace)
+                                    * Each.Spin);
+
                      if the_sprite_Data.Target = null
                      then
-                        --  log (the_sprite_Data.Pace'Image);
 
-                        Each.Speed_is (  the_sprite_Data.Movement
-                                       * pace_Multiplier (the_sprite_Data.Pace)
-                                       * Each.Spin);
-                        --  Each.apply_Force (  sprite_Data (Each.user_Data.all).Movement
-                        --                    * Each.Spin);
+                        if the_sprite_Data.target_Site /= null_Site
+                        then
+                           declare
+                              use gel.linear_Algebra;
+                              the_Delta : constant Vector_3 := the_sprite_Data.target_Site - Each.Site;
+
+                           begin
+                              if almost_Equals (the_Delta,
+                                                [0.0, 0.0, 0.0],
+                                                Tolerance => 0.05)
+                              then     -- Has reached the targeted site.
+                                 the_sprite_Data.target_Site := null_Site;
+                              else     -- Still moving towards the target site.
+                                 Each.Speed_is (  Each.Speed
+                                                +   pace_Multiplier (the_sprite_Data.Pace)
+                                                  * Normalised (the_Delta)
+                                                  * 4.0);
+                              end if;
+                           end;
+                        end if;
+
                      end if;
                   end;
                end if;

@@ -356,12 +356,12 @@ is
             if    Self.pc_Sprite     = null
               and Self.pc_sprite_Id /= gel.null_sprite_Id
             then
-               begin
-                  Self.pc_Sprite := Self.client_World.fetch_Sprite (Self.pc_sprite_Id);
-               exception
-                  when constraint_Error =>
-                     log ("Warning: Unable to fetch PC sprite" & Self.pc_sprite_Id'Image & ".");
-               end;
+               Self.pc_Sprite := Self.client_World.fetch_Sprite (Self.pc_sprite_Id);
+
+               if Self.pc_Sprite = null
+               then
+                  log ("Warning: Unable to fetch PC sprite" & Self.pc_sprite_Id'Image & ".");
+               end if;
             end if;
 
 
@@ -369,7 +369,7 @@ is
             --
             if Self.pc_Sprite /= null
             then
-               Self.Applet.Camera.Site_is (Self.pc_Sprite.Site + [0.0, 0.0, 30.0]);
+               Self.Applet.Camera.Site_is (Self.pc_Sprite.Site + [0.0, 0.0, 50.0]);
             end if;
 
 

@@ -74,6 +74,8 @@ is
 
 
 
+
+   ---------
    --- Paces
    --
 
@@ -168,7 +170,9 @@ is
 
 
 
-
+   --------------
+   --- Setup Gtk.
+   --
 
    procedure setup_Gtk (Self : in out Client.local.item)
    is

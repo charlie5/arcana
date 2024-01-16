@@ -184,15 +184,21 @@ is
    type Space_clicked_Response is new lace.Response.item with null record;
 
    overriding
-   procedure respond (Self : in out Space_clicked_Response;  to_Event : in lace.Event.Item'Class)
+   procedure respond (Self : in out Space_clicked_Response;  to_Event : in lace.Event.item'Class)
    is
+      use arcana.Server;
+
       the_Event : constant gel.Events.space_click_down_Event := gel.Events.space_click_down_Event (to_Event);
    begin
       --  log ("Space clicked. " & the_Event.world_Site'Image);
 
       my_Client.target_Name.set_Label ("Ground");
+
       my_Client.target_Marker.Site_is (the_Event.world_Site);
       my_Client.Target := null;
+
+      my_Client.emit (target_ground_Event' (sprite_Id   => my_Client.pc_sprite_Id,
+                                            ground_Site => the_Event.world_Site));
    end respond;
 
 
