@@ -79,24 +79,24 @@ is
 
 
 
-   -----------
-   --- Clients
+   --  -----------
+   --  --- Clients
+   --  --
    --
-
-   type client_Info is
-      record
-         Client       : arcana.Client.view;
-         Name         : unbounded_String;
-         as_Observer  : lace.Observer.view;
-         as_Subject   : lace.Subject .view;
-         pc_sprite_Id : gel.sprite_Id;
-      end record;
-
-   type client_Info_array is array (Positive range <>) of client_Info;
-
-   max_Clients : constant := 5_000;
-
-
+   --  type client_Info is
+   --     record
+   --        Client       : arcana.Client.view;
+   --        Name         : unbounded_String;
+   --        as_Observer  : lace.Observer.view;
+   --        as_Subject   : lace.Subject .view;
+   --        pc_sprite_Id : gel.sprite_Id;
+   --     end record;
+   --
+   --  type client_Info_array is array (Positive range <>) of client_Info;
+   --
+   --  max_Clients : constant := 5_000;
+   --
+   --
 
    -- Protection against race conditions.
    --
