@@ -86,7 +86,8 @@ is
                        Message : in String);
 
 
-   private
+
+private
 
    use ada.Strings.unbounded;
 
