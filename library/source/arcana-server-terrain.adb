@@ -1,37 +1,19 @@
 with
-     gel.World.server,
      gel.Sprite,
      gel.Forge,
-     gel.Events,
 
      openGL.Palette,
      openGL.IO,
 
-     Physics,
-
-     lace.Observer,
-     lace.Subject,
-     lace.Response,
-     lace.Event.utility,
-     lace.Text.forge,
-
      float_Math.random,
 
-     system.RPC,
-
-     ada.Exceptions,
-     ada.Calendar,
-     ada.Strings.unbounded,
      ada.Text_IO;
 
 
 package body arcana.Server.Terrain
 is
-   use gel.World.server,
-       openGL.Palette,
-       ada.Strings.unbounded;
+   use openGL.Palette;
 
-   use type Client.view;
 
 
    procedure set_up_Boulders (in_World : gel.World.view)
