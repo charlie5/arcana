@@ -93,11 +93,19 @@ is
 
 
 
-   function all_client_Info return client_Info_array
+   function Info return client_Info_array
    is
    begin
       return safe_Clients.all_client_Info;
-   end all_client_Info;
+   end Info;
+
+
+
+   function Info (for_Client : in Client.view) return client_Info
+   is
+   begin
+      return safe_Clients.Info (for_Client);
+   end Info;
 
 
 
@@ -117,14 +125,6 @@ is
 
 
 
-   function Info (for_Client : in Client.view) return client_Info
-   is
-   begin
-      return safe_Clients.Info (for_Client);
-   end Info;
-
-
-
 
    function fetch return arcana.Client.views
    is
@@ -138,9 +138,6 @@ is
 
       return Result;
    end fetch;
-
-
-
 
 
 end arcana.Server.all_Clients;

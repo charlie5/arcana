@@ -11,8 +11,6 @@ with
 
      Physics,
 
-     lace.Observer,
-     lace.Subject,
      lace.Response,
      lace.Event.utility,
      lace.Text.forge,
@@ -27,8 +25,7 @@ with
 package body arcana.Server
 is
    use gel.World.server,
-       openGL.Palette,
-       ada.Strings.unbounded;
+       openGL.Palette;
 
    use type Client.view;
 
@@ -80,98 +77,6 @@ is
 
 
 
-
-   -- Protection against race conditions.
-   --
-
-   --  protected safe_Clients
-   --  is
-   --     procedure add (the_Client : in Client.view);
-   --     procedure rid (the_Client : in Client.view);
-   --
-   --     function  all_client_Info return client_Info_array;
-   --     function  Info (for_Client : in Client.view) return client_Info;
-   --
-   --  private
-   --     Clients : client_Info_array (1 .. max_Clients);
-   --  end safe_Clients;
-   --
-   --
-   --
-   --  protected body safe_Clients
-   --  is
-   --     procedure add (the_Client : in Client.view)
-   --     is
-   --        function "+" (From : in String) return unbounded_String
-   --          renames to_unbounded_String;
-   --     begin
-   --        for i in Clients'Range
-   --        loop
-   --           if Clients (i).Client = null
-   --           then
-   --              Clients (i).Client       :=  the_Client;
-   --              Clients (i).Name         := +the_Client.Name;
-   --              Clients (i).as_Observer  :=  the_Client.as_Observer;
-   --              Clients (i).as_Subject   :=  the_Client.as_Subject;
-   --              Clients (i).pc_sprite_Id :=  the_Client.pc_sprite_Id;
-   --              return;
-   --           end if;
-   --        end loop;
-   --     end add;
-   --
-   --
-   --     procedure rid (the_Client : in Client.view)
-   --     is
-   --     begin
-   --        for i in Clients'Range
-   --        loop
-   --           if Clients (i).Client = the_Client then
-   --              Clients (i).Client := null;
-   --              return;
-   --           end if;
-   --        end loop;
-   --
-   --        raise Program_Error with "Unknown client.";
-   --     end rid;
-   --
-   --
-   --     function all_client_Info return client_Info_array
-   --     is
-   --        Count  : Natural := 0;
-   --        Result : client_Info_array (1 .. max_Clients);
-   --     begin
-   --        for i in Clients'Range
-   --        loop
-   --           if Clients (i).Client /= null
-   --           then
-   --              Count          := Count + 1;
-   --              Result (Count) := Clients (i);
-   --           end if;
-   --        end loop;
-   --
-   --        return Result (1 .. Count);
-   --     end all_client_Info;
-   --
-   --
-   --     function Info (for_Client : in Client.view) return client_Info
-   --     is
-   --     begin
-   --        for i in Clients'Range
-   --        loop
-   --           if Clients (i).Client = for_Client
-   --           then
-   --              return Clients (i);
-   --           end if;
-   --        end loop;
-   --
-   --        raise program_Error with "Unknown client.";
-   --     end Info;
-   --
-   --
-   --  end safe_Clients;
-
-
-
    ---------------
    --- Sprite Data
    --
@@ -187,7 +92,7 @@ is
          Movement    : gel.Math.Vector_3 := gel.Math.Origin_3D;
          Spin        : gel.Math.Degrees  :=  0.0;
          Target      : gel.Sprite.view;
-         target_Site : gel.Math.Vector_3 := null_Site; -- gel.Math.Origin_3D;
+         target_Site : gel.Math.Vector_3 := null_Site;
       end record;
 
 
@@ -302,8 +207,7 @@ is
    procedure register (the_Client : in Client.view)
    is
       Name     : constant String            := the_Client.Name;
-      --  all_Info : constant client_Info_array := safe_Clients.all_client_Info;
-      all_Info : constant client_Info_array := all_Clients.all_client_Info;
+      all_Info : constant client_Info_array := all_Clients.Info;
    begin
       log ("Registering '" & Name & "'.");
 
@@ -354,7 +258,6 @@ is
          the_Client.pc_sprite_Id_is (the_Player.Id);
       end;
 
-      --  safe_Clients.add (the_Client);
       all_Clients.add (the_Client);
 
       lace.Event.utility.connect (the_Observer  => the_World.local_Observer,
@@ -382,7 +285,6 @@ is
 
    procedure deregister (the_Client : in Client.view)
    is
-      --  client_Info : constant Server.client_Info := safe_Clients.Info (for_Client => the_Client);
       client_Info : constant Server.client_Info := all_Clients.Info (for_Client => the_Client);
    begin
       log ("Deregistering '" & to_String (client_Info.Name) & "'.");
@@ -395,7 +297,6 @@ is
          the_World.emit (the_Event);
       end;
 
-      --  safe_Clients.rid (the_Client);
       all_Clients.rid (the_Client);
 
       world_Lock.acquire;
@@ -421,8 +322,7 @@ is
 
    function fetch_all_Clients return arcana.Client.views
    is
-      --  all_Info : constant client_Info_array := safe_Clients.all_client_Info;
-      all_Info : constant client_Info_array := all_Clients.all_client_Info;
+      all_Info : constant client_Info_array := all_Clients.Info;
       Result   :          arcana.Client.views (all_Info'Range);
    begin
       for i in Result'Range
@@ -460,8 +360,7 @@ is
          exit when Done;
 
          declare
-            --  all_Info : constant client_Info_array := safe_Clients.all_client_Info;
-            all_Info : constant client_Info_array := all_Clients.all_client_Info;
+            all_Info : constant client_Info_array := all_Clients.Info;
          begin
             for Each of all_Info
             loop
