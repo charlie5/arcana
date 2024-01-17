@@ -455,8 +455,8 @@ is
 
 
 
-   --------
-   --- Open
+   -------------------
+   --- Open/Run/Close.
    --
 
    procedure open
@@ -526,6 +526,7 @@ is
             loop
                if Each.user_Data /= null
                then
+
                   declare
                      use type gel.Sprite.view;
 
@@ -536,11 +537,6 @@ is
                                                                            Jog  => 1.0,
                                                                            Run  => 2.0,
                                                                            Dash => 4.0];
-                     --  pace_Multiplier : constant array (Pace_t) of Real := [Halt => 1.0,
-                     --                                                        Walk => 1.0,
-                     --                                                        Jog  => 1.0,
-                     --                                                        Run  => 1.0,
-                     --                                                        Dash => 1.0];
                   begin
                      Each.Speed_is (  the_sprite_Data.Movement
                                     * pace_Multiplier (the_sprite_Data.Pace)
@@ -561,6 +557,7 @@ is
                                                 Tolerance => 0.05)
                               then     -- Has reached the targeted site.
                                  the_sprite_Data.target_Site := null_Site;
+
                               else     -- Still moving towards the target site.
                                  Each.Speed_is (  Each.Speed
                                                 +   pace_Multiplier (the_sprite_Data.Pace)
@@ -572,7 +569,11 @@ is
 
                      end if;
                   end;
+
+               else
+                  null;
                end if;
+
             end loop;
 
             world_Lock.release;
@@ -612,6 +613,7 @@ is
    end run;
 
 
+
    procedure close
    is
       all_Clients : constant Client.views := arcana.Server.fetch_all_Clients;
@@ -644,8 +646,8 @@ is
 
 
 
-   ------------------------
-   --- Last chance handler.
+   --------------------------
+   --- 'Last chance' handler.
    --
 
    procedure last_chance_Handler (Msg  : in system.Address;
