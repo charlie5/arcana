@@ -16,8 +16,17 @@ package arcana.Server
 -- Limited to a maximum of 5_000 arcana clients running at once.
 --
 is
-   pragma remote_Call_interface;
+   pragma remote_call_Interface;
 
+
+   procedure open;
+   procedure run;
+   procedure close;
+
+
+   ------------
+   --- Clients.
+   --
    Name_already_used : exception;
 
    procedure   register (the_Client : in Client.view);
@@ -26,11 +35,13 @@ is
    function  fetch_all_Clients return arcana.Client.views;
 
    procedure ping;
-   procedure start;
-   procedure shutdown;
 
 
-   function World return gel.remote.World.view;
+   -------------------------------------------
+   --- Client access to the servers Gel world.
+   --
+   function  World return gel.remote.World.view;
+
 
 
    -------------
@@ -43,7 +54,7 @@ is
       record
          sprite_Id : gel.sprite_Id;
          Direction : move_Direction;
-         On        : Boolean;            -- When 'On' then start moving, else stop moving.
+         On        : Boolean;            -- When 'On' then run moving, else stop moving.
       end record;
 
 
@@ -75,8 +86,7 @@ is
                        Message : in String);
 
 
-
-private
+   private
 
    use ada.Strings.unbounded;
 
@@ -97,7 +107,6 @@ private
    type client_Info_array is array (Positive range <>) of client_Info;
 
    max_Clients : constant := 5_000;
-
 
 
 

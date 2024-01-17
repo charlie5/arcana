@@ -455,17 +455,16 @@ is
 
 
 
-   ---------
-   --- Start
+   --------
+   --- Open
    --
 
-   the_one_Tree : gel.Sprite.view;
-
-
-   procedure start
+   procedure open
    is
       use gel.Math;
       use type gel.Sprite.any_user_Data_view;
+
+      the_one_Tree : gel.Sprite.view;
 
    begin
       the_World.Gravity_is ([0.0, 0.0, 0.0]);
@@ -482,13 +481,21 @@ is
                                                    Texture  => openGL.to_Asset ("assets/tree7.png"));
       the_World.add (the_one_Tree);
 
-      --  log (openGL.IO.to_Image (openGL.to_Asset ("assets/terrain/trees.png"))'Length (1)'Image);
-
-
+      -- Terrain.
+      --
       Terrain.set_up_Boulders (in_World => the_World'Access);
       Terrain.set_up_Trees    (in_World => the_World'Access);
+   end open;
 
 
+
+
+   procedure run
+   is
+      use gel.Math;
+      use type gel.Sprite.any_user_Data_view;
+
+   begin
       declare
          use ada.Calendar;
 
@@ -604,11 +611,10 @@ is
             next_evolve_Time := next_evolve_Time + 1.0 / 60.0;
          end loop;
       end;
-   end start;
+   end run;
 
 
-
-   procedure shutdown
+   procedure close
    is
       all_Clients : constant Client.views := arcana.Server.fetch_all_Clients;
    begin
@@ -623,7 +629,7 @@ is
       end loop;
 
       check_Client_lives.halt;
-   end shutdown;
+   end close;
 
 
 
