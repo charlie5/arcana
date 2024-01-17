@@ -23,7 +23,7 @@ is
    procedure   register (the_Client : in Client.view);
    procedure deregister (the_Client : in Client.view);
 
-   function  all_Clients return arcana.Client.views;
+   function  fetch_all_Clients return arcana.Client.views;
 
    procedure ping;
    procedure start;

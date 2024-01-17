@@ -1,5 +1,6 @@
 with
      arcana.Server.Terrain,
+     arcana.Server.all_Clients,
 
      gel.World.server,
      gel.Sprite,
@@ -79,113 +80,95 @@ is
 
 
 
-   --  -----------
-   --  --- Clients
-   --  --
-   --
-   --  type client_Info is
-   --     record
-   --        Client       : arcana.Client.view;
-   --        Name         : unbounded_String;
-   --        as_Observer  : lace.Observer.view;
-   --        as_Subject   : lace.Subject .view;
-   --        pc_sprite_Id : gel.sprite_Id;
-   --     end record;
-   --
-   --  type client_Info_array is array (Positive range <>) of client_Info;
-   --
-   --  max_Clients : constant := 5_000;
-   --
-   --
 
    -- Protection against race conditions.
    --
 
-   protected safe_Clients
-   is
-      procedure add (the_Client : in Client.view);
-      procedure rid (the_Client : in Client.view);
-
-      function  all_client_Info return client_Info_array;
-      function  Info (for_Client : in Client.view) return client_Info;
-
-   private
-      Clients : client_Info_array (1 .. max_Clients);
-   end safe_Clients;
-
-
-
-   protected body safe_Clients
-   is
-      procedure add (the_Client : in Client.view)
-      is
-         function "+" (From : in String) return unbounded_String
-           renames to_unbounded_String;
-      begin
-         for i in Clients'Range
-         loop
-            if Clients (i).Client = null
-            then
-               Clients (i).Client       :=  the_Client;
-               Clients (i).Name         := +the_Client.Name;
-               Clients (i).as_Observer  :=  the_Client.as_Observer;
-               Clients (i).as_Subject   :=  the_Client.as_Subject;
-               Clients (i).pc_sprite_Id :=  the_Client.pc_sprite_Id;
-               return;
-            end if;
-         end loop;
-      end add;
-
-
-      procedure rid (the_Client : in Client.view)
-      is
-      begin
-         for i in Clients'Range
-         loop
-            if Clients (i).Client = the_Client then
-               Clients (i).Client := null;
-               return;
-            end if;
-         end loop;
-
-         raise Program_Error with "Unknown client.";
-      end rid;
-
-
-      function all_client_Info return client_Info_array
-      is
-         Count  : Natural := 0;
-         Result : client_Info_array (1 .. max_Clients);
-      begin
-         for i in Clients'Range
-         loop
-            if Clients (i).Client /= null
-            then
-               Count          := Count + 1;
-               Result (Count) := Clients (i);
-            end if;
-         end loop;
-
-         return Result (1 .. Count);
-      end all_client_Info;
-
-
-      function Info (for_Client : in Client.view) return client_Info
-      is
-      begin
-         for i in Clients'Range
-         loop
-            if Clients (i).Client = for_Client
-            then
-               return Clients (i);
-            end if;
-         end loop;
-
-         raise program_Error with "Unknown client.";
-      end Info;
-
-
-   end safe_Clients;
+   --  protected safe_Clients
+   --  is
+   --     procedure add (the_Client : in Client.view);
+   --     procedure rid (the_Client : in Client.view);
+   --
+   --     function  all_client_Info return client_Info_array;
+   --     function  Info (for_Client : in Client.view) return client_Info;
+   --
+   --  private
+   --     Clients : client_Info_array (1 .. max_Clients);
+   --  end safe_Clients;
+   --
+   --
+   --
+   --  protected body safe_Clients
+   --  is
+   --     procedure add (the_Client : in Client.view)
+   --     is
+   --        function "+" (From : in String) return unbounded_String
+   --          renames to_unbounded_String;
+   --     begin
+   --        for i in Clients'Range
+   --        loop
+   --           if Clients (i).Client = null
+   --           then
+   --              Clients (i).Client       :=  the_Client;
+   --              Clients (i).Name         := +the_Client.Name;
+   --              Clients (i).as_Observer  :=  the_Client.as_Observer;
+   --              Clients (i).as_Subject   :=  the_Client.as_Subject;
+   --              Clients (i).pc_sprite_Id :=  the_Client.pc_sprite_Id;
+   --              return;
+   --           end if;
+   --        end loop;
+   --     end add;
+   --
+   --
+   --     procedure rid (the_Client : in Client.view)
+   --     is
+   --     begin
+   --        for i in Clients'Range
+   --        loop
+   --           if Clients (i).Client = the_Client then
+   --              Clients (i).Client := null;
+   --              return;
+   --           end if;
+   --        end loop;
+   --
+   --        raise Program_Error with "Unknown client.";
+   --     end rid;
+   --
+   --
+   --     function all_client_Info return client_Info_array
+   --     is
+   --        Count  : Natural := 0;
+   --        Result : client_Info_array (1 .. max_Clients);
+   --     begin
+   --        for i in Clients'Range
+   --        loop
+   --           if Clients (i).Client /= null
+   --           then
+   --              Count          := Count + 1;
+   --              Result (Count) := Clients (i);
+   --           end if;
+   --        end loop;
+   --
+   --        return Result (1 .. Count);
+   --     end all_client_Info;
+   --
+   --
+   --     function Info (for_Client : in Client.view) return client_Info
+   --     is
+   --     begin
+   --        for i in Clients'Range
+   --        loop
+   --           if Clients (i).Client = for_Client
+   --           then
+   --              return Clients (i);
+   --           end if;
+   --        end loop;
+   --
+   --        raise program_Error with "Unknown client.";
+   --     end Info;
+   --
+   --
+   --  end safe_Clients;
 
 
 
@@ -319,7 +302,8 @@ is
    procedure register (the_Client : in Client.view)
    is
       Name     : constant String            := the_Client.Name;
-      all_Info : constant client_Info_array := safe_Clients.all_client_Info;
+      --  all_Info : constant client_Info_array := safe_Clients.all_client_Info;
+      all_Info : constant client_Info_array := all_Clients.all_client_Info;
    begin
       log ("Registering '" & Name & "'.");
 
@@ -370,7 +354,8 @@ is
          the_Client.pc_sprite_Id_is (the_Player.Id);
       end;
 
-      safe_Clients.add (the_Client);
+      --  safe_Clients.add (the_Client);
+      all_Clients.add (the_Client);
 
       lace.Event.utility.connect (the_Observer  => the_World.local_Observer,
                                   to_Subject    => the_Client.as_Subject,
@@ -397,7 +382,8 @@ is
 
    procedure deregister (the_Client : in Client.view)
    is
-      client_Info : constant Server.client_Info := safe_Clients.Info (for_Client => the_Client);
+      --  client_Info : constant Server.client_Info := safe_Clients.Info (for_Client => the_Client);
+      client_Info : constant Server.client_Info := all_Clients.Info (for_Client => the_Client);
    begin
       log ("Deregistering '" & to_String (client_Info.Name) & "'.");
 
@@ -409,7 +395,8 @@ is
          the_World.emit (the_Event);
       end;
 
-      safe_Clients.rid (the_Client);
+      --  safe_Clients.rid (the_Client);
+      all_Clients.rid (the_Client);
 
       world_Lock.acquire;
       the_World .rid (the_World.fetch_Sprite (client_Info.pc_sprite_Id));
@@ -432,9 +419,10 @@ is
 
 
 
-   function all_Clients return arcana.Client.views
+   function fetch_all_Clients return arcana.Client.views
    is
-      all_Info : constant client_Info_array := safe_Clients.all_client_Info;
+      --  all_Info : constant client_Info_array := safe_Clients.all_client_Info;
+      all_Info : constant client_Info_array := all_Clients.all_client_Info;
       Result   :          arcana.Client.views (all_Info'Range);
    begin
       for i in Result'Range
@@ -443,7 +431,7 @@ is
       end loop;
 
       return Result;
-   end all_Clients;
+   end fetch_all_Clients;
 
 
 
@@ -472,7 +460,8 @@ is
          exit when Done;
 
          declare
-            all_Info : constant client_Info_array := safe_Clients.all_client_Info;
+            --  all_Info : constant client_Info_array := safe_Clients.all_client_Info;
+            all_Info : constant client_Info_array := all_Clients.all_client_Info;
          begin
             for Each of all_Info
             loop
@@ -702,7 +691,7 @@ is
                                     Count);
                for i in 1 .. Count
                loop
-                  for Each of all_Clients
+                  for Each of fetch_all_Clients
                   loop
                      Each.receive_Chat (Messages (i).Client.Name
                                         & " says '"
@@ -722,7 +711,7 @@ is
 
    procedure shutdown
    is
-      all_Clients : constant Client.views := arcana.Server.all_Clients;
+      all_Clients : constant Client.views := arcana.Server.fetch_all_Clients;
    begin
       for Each of all_Clients
       loop
