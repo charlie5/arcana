@@ -369,7 +369,7 @@ is
             --
             if Self.pc_Sprite /= null
             then
-               Self.Applet.Camera.Site_is (Self.pc_Sprite.Site + [0.0, 0.0, 50.0]);
+               Self.Applet.Camera.Site_is (Self.pc_Sprite.Site + [0.0, 0.0, 40.0]);
             end if;
 
 
