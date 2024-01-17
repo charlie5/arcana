@@ -229,7 +229,7 @@ is
          world_Lock.acquire;
          the_Player := gel.Forge.new_circle_Sprite (in_World => the_World'Access,
                                                     Name     => Name,
-                                                    Site     => [0.0, 0.0, 0.0],
+                                                    Site     => [5.0, 0.0, 0.0],
                                                     Mass     => 1.0,
                                                     Bounce   => 0.0,
                                                     Friction => 0.0,
@@ -462,8 +462,6 @@ is
    procedure open
    is
       use gel.Math;
-      use type gel.Sprite.any_user_Data_view;
-
       the_one_Tree : gel.Sprite.view;
 
    begin
@@ -473,11 +471,11 @@ is
       --
       the_one_Tree := gel.Forge.new_circle_Sprite (in_World => the_World'Access,
                                                    Name     => "the One Tree",
-                                                   Site     => [5.0, 0.0, 0.0],
+                                                   Site     => [0.0, 0.0, 0.0],
                                                    Mass     =>  0.0,
                                                    Bounce   =>  0.0,
                                                    Friction =>  0.0,
-                                                   Radius   =>  0.5,
+                                                   Radius   =>  2.0,
                                                    Texture  => openGL.to_Asset ("assets/tree7.png"));
       the_World.add (the_one_Tree);
 
