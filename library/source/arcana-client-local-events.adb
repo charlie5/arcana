@@ -135,8 +135,6 @@ is
    procedure respond (Self : in out Sprite_clicked_Response;  to_Event : in lace.Event.Item'Class)
    is
    begin
-      log ("'" & Self.Sprite.Name & "' clicked.");
-
       my_Client.Target := Self.Sprite;
       my_Client.target_Name.set_Label (Self.Sprite.Name);
    end respond;

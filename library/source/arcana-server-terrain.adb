@@ -81,8 +81,6 @@ is
 
             if to_Color (Color) /= Black
             then
-               --  log ("Tree color:" & Color'Image);
-
                Counter  := Counter + 1;
                the_Tree := gel.Forge.new_circle_Sprite (in_World => in_World,
                                                         Name     => "Tree ~" & Counter'Image,
