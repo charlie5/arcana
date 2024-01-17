@@ -7,7 +7,6 @@ with
      gel.Events,
 
      openGL.Palette,
-     openGL.IO,
 
      Physics,
 
@@ -17,13 +16,10 @@ with
      lace.Event.utility,
      lace.Text.forge,
 
-     float_Math.random,
-
      system.RPC,
 
      ada.Exceptions,
      ada.Calendar,
-     ada.Strings.unbounded,
      ada.Text_IO;
 
 
@@ -34,14 +30,6 @@ is
        ada.Strings.unbounded;
 
    use type Client.view;
-
-
-   -------------
-   --- Debugging
-   --
-   procedure log (Message : in String := "")
-                  renames ada.Text_IO.put_Line;
-
 
 
    --------------
@@ -465,6 +453,7 @@ is
       entry halt;
    end check_Client_lives;
 
+
    task body check_Client_lives
    is
       use ada.Text_IO;
@@ -483,13 +472,7 @@ is
          exit when Done;
 
          declare
-            all_Info    : constant client_Info_array := safe_Clients.all_client_Info;
-
-            --  Dead        : client_Info_array (all_Info'Range);
-            --  dead_Count  : Natural := 0;
-
-            function "+" (From : in unbounded_String) return String
-                          renames to_String;
+            all_Info : constant client_Info_array := safe_Clients.all_client_Info;
          begin
             for Each of all_Info
             loop
@@ -501,9 +484,6 @@ is
 
                      log (+Each.Name & " has died.");
                      deregister (Each.Client);
-
-                     --  dead_Count        := dead_Count + 1;
-                     --  Dead (dead_Count) := Each;
                end;
             end loop;
 
@@ -761,6 +741,14 @@ is
 
    procedure ping is null;
 
+
+
+   -----------
+   --- Sundry.
+   --
+
+   procedure log (Message : in String := "")
+                  renames ada.Text_IO.put_Line;
 
 
 

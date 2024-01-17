@@ -3,6 +3,10 @@ with
      gel.remote.World,
      lace.Event;
 
+private
+with
+     ada.Strings.unbounded;
+
 
 package arcana.Server
 --
@@ -61,12 +65,25 @@ is
 
 
 
-      ---------
-      --- Chat.
-      --
+   ---------
+   --- Chat.
+   --
 
    procedure add_Chat (From    : in Client.view;
                        Message : in String);
+
+
+
+private
+
+   -----------
+   --- Sundry.
+   --
+
+   function "+" (From : in ada.Strings.unbounded.unbounded_String) return String
+                 renames ada.Strings.unbounded.to_String;
+
+   procedure log (Message : in String := "");
 
 
 end arcana.Server;
