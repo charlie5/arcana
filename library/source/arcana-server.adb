@@ -548,13 +548,15 @@ is
                         if the_sprite_Data.target_Site /= null_Site
                         then
                            declare
-                              use gel.linear_Algebra;
+                              use gel.linear_Algebra,
+                                  gel.linear_Algebra_3D;
+
                               the_Delta : constant Vector_3 := the_sprite_Data.target_Site - Each.Site;
 
                            begin
                               if almost_Equals (the_Delta,
                                                 [0.0, 0.0, 0.0],
-                                                Tolerance => 0.05)
+                                                Tolerance => 0.1)
                               then     -- Has reached the targeted site.
                                  the_sprite_Data.target_Site := null_Site;
 
@@ -563,6 +565,23 @@ is
                                                 +   pace_Multiplier (the_sprite_Data.Pace)
                                                   * Normalised (the_Delta)
                                                   * 4.0);
+                                 declare
+                                      use gel.Geometry_2d;
+
+                                    Site  : constant gel.Geometry_2d.Site := [the_Delta (1),
+                                                                              the_Delta (2)];
+                                    Angle : constant Real                 := to_Polar (Site).Angle;
+                                 begin
+                                    --  log ("Angle:" & Angle'Image);
+
+                                    Each.Spin_is (to_Rotation (Axis  => [0.0, 0.0, 1.0],
+                                                               Angle => Angle - to_Radians (90.0)));
+
+                                    --  Each.xy_Spin_is (Angle - to_Radians (90.0));
+                                    --
+                                    --  Each.Gyre_is (  [0.0, 0.0, 1.0]
+                                    --                * (Angle - to_Radians (90.0)));
+                                 end;
                               end if;
                            end;
                         end if;

@@ -95,7 +95,7 @@ is
                                                             Fill        => False);
          Self.Applet.client_World.add (Self.target_Marker);
 
-         --- Set the 'my_Client' convenience access in subprogams (ie event responses).
+         --- Set the 'my_Client' convenience access for subprogams (ie event responses).
          --
          my_Client := Self'unchecked_Access;
       end return;
@@ -303,9 +303,9 @@ is
 
       check_Server_lives.start (Self'unchecked_Access);
 
+      Self.Applet.client_World.Gravity_is  ([0.0, 0.0, 0.0]);
       Self.Applet.client_World.is_a_Mirror (of_World      => arcana.Server.World);
       Self.Applet.enable_Mouse             (detect_Motion => False);
-      Self.Applet.client_World.Gravity_is  ([0.0, 0.0, 0.0]);
    end open;
 
 

@@ -54,7 +54,7 @@ is
    begin
       case my_Client.Pace
       is
-         when Halt => halt_Button.set_Active (True);
+         --  when Halt => halt_Button.set_Active (True);
          when others => null;
       end case;
 
