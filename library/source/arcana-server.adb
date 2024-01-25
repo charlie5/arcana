@@ -88,11 +88,12 @@ is
 
    type sprite_Data is new gel.Sprite.any_user_Data with
       record
-         Pace        : Pace_t            := Halt;
-         Movement    : gel.Math.Vector_3 := gel.Math.Origin_3D;
-         Spin        : gel.Math.Degrees  :=  0.0;
-         Target      : gel.Sprite.view;
-         target_Site : gel.Math.Vector_3 := null_Site;
+         Pace           : Pace_t            := Halt;
+         Movement       : gel.Math.Vector_3 := gel.Math.Origin_3D;
+         Spin           : gel.Math.Degrees  :=  0.0;
+         Target         : gel.Sprite.view;
+         target_Site    : gel.Math.Vector_3 := null_Site;
+         is_Approaching : Boolean           := False;
       end record;
 
 
@@ -166,6 +167,27 @@ is
 
 
 
+   ---------------------------
+   --- pc_approaching_Response
+   --
+
+   type pc_approaching_Response is new lace.Response.item with null record;
+
+   overriding
+   procedure respond (Self : in out pc_approaching_Response;   to_Event : in lace.Event.item'Class)
+   is
+      the_Event       : constant pc_approach_Event       := pc_approach_Event       (to_Event);
+      the_Sprite      :          gel.Sprite.view    renames the_World.fetch_Sprite  (the_Event.sprite_Id);
+      the_sprite_Data :          server.sprite_Data renames server.sprite_Data      (the_Sprite.user_Data.all);
+   begin
+      the_sprite_Data.is_Approaching := True;
+   end respond;
+
+
+   the_pc_approaching_Response : aliased pc_approaching_Response;
+
+
+
    --------------------------
    --- target_ground_Response
    --
@@ -188,13 +210,47 @@ is
    begin
       --  if the_Event.sprite_Id = null_sprite_Id
       --  then   -- The ground has been targeted.
-         the_sprite_Data.Target      := null;
-         the_sprite_Data.target_Site := the_Event.ground_Site;
+      the_sprite_Data.Target         := null;
+      the_sprite_Data.is_Approaching := False;
+      the_sprite_Data.target_Site    := the_Event.ground_Site;
       --  end if;
    end respond;
 
 
    the_target_ground_Response : aliased target_ground_Response;
+
+
+
+   --------------------------
+   --- target_sprite_Response
+   --
+
+   type target_sprite_Response is new lace.Response.item with
+      record
+         null; -- targeting_Sprite : gel.sprite_Id;
+      end record;
+
+
+   overriding
+   procedure respond (Self : in out target_sprite_Response;   to_Event : in lace.Event.item'Class)
+   is
+      use Gel;
+
+      the_Event       : constant target_sprite_Event     := target_sprite_Event     (to_Event);
+      the_Sprite      :          gel.Sprite.view    renames the_World.fetch_Sprite  (the_Event.sprite_Id);
+      the_sprite_Data :          server.sprite_Data renames server.sprite_Data      (the_Sprite.user_Data.all);
+      target_Sprite   :          gel.Sprite.view    renames the_World.fetch_Sprite  (the_Event.target_sprite_Id);
+   begin
+      --  if the_Event.sprite_Id = null_sprite_Id
+      --  then   -- The ground has been targeted.
+      the_sprite_Data.Target      := target_Sprite;
+      --  the_sprite_Data.target_Site := target_Sprite.Site;
+      --  end if;
+   end respond;
+
+
+   the_target_sprite_Response : aliased target_sprite_Response;
+
 
 
 
@@ -272,8 +328,18 @@ is
 
       lace.Event.utility.connect (the_Observer  => the_World.local_Observer,
                                   to_Subject    => the_Client.as_Subject,
+                                  with_Response => the_pc_approaching_Response'Access,
+                                  to_Event_Kind => lace.Event.utility.to_Kind (pc_approach_Event'Tag));
+
+      lace.Event.utility.connect (the_Observer  => the_World.local_Observer,
+                                  to_Subject    => the_Client.as_Subject,
                                   with_Response => the_target_ground_Response'Access,
                                   to_Event_Kind => lace.Event.utility.to_Kind (target_ground_Event'Tag));
+
+      lace.Event.utility.connect (the_Observer  => the_World.local_Observer,
+                                  to_Subject    => the_Client.as_Subject,
+                                  with_Response => the_target_sprite_Response'Access,
+                                  to_Event_Kind => lace.Event.utility.to_Kind (target_sprite_Event'Tag));
    end register;
 
 
@@ -481,8 +547,8 @@ is
 
       -- Terrain.
       --
-      Terrain.set_up_Boulders (in_World => the_World'Access);
-      Terrain.set_up_Trees    (in_World => the_World'Access);
+      --  Terrain.set_up_Boulders (in_World => the_World'Access);
+      --  Terrain.set_up_Trees    (in_World => the_World'Access);
    end open;
 
 
@@ -542,8 +608,15 @@ is
                                     * pace_Multiplier (the_sprite_Data.Pace)
                                     * Each.Spin);
 
-                     if the_sprite_Data.Target = null
+                     --  log (the_sprite_Data.is_Approaching'Image);
+
+                     if    the_sprite_Data.Target /= null
+                       and the_sprite_Data.is_Approaching
                      then
+                        the_sprite_Data.target_Site := the_sprite_Data.Target.Site;
+                     end if;
+
+                        --  log (the_sprite_Data.target_Site'Image);
 
                         if the_sprite_Data.target_Site /= null_Site
                         then
@@ -553,12 +626,15 @@ is
 
                               the_Delta : constant Vector_3 := the_sprite_Data.target_Site - Each.Site;
 
-                           begin
+                        begin
+                           --  log (the_Delta'image);
+
                               if almost_Equals (the_Delta,
                                                 [0.0, 0.0, 0.0],
                                                 Tolerance => 0.1)
                               then     -- Has reached the targeted site.
-                                 the_sprite_Data.target_Site := null_Site;
+                              the_sprite_Data.target_Site    := null_Site;
+                              the_sprite_Data.is_Approaching := False;
 
                               else     -- Still moving towards the target site.
                                  Each.Speed_is (  Each.Speed
@@ -586,7 +662,7 @@ is
                            end;
                         end if;
 
-                     end if;
+                     --  end if;
                   end;
 
                else

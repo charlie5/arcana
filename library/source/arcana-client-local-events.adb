@@ -137,6 +137,10 @@ is
    begin
       my_Client.Target := Self.Sprite;
       my_Client.target_Name.set_Label (Self.Sprite.Name);
+
+      my_Client.emit (arcana.Server.target_sprite_Event' (sprite_Id        => my_Client.pc_sprite_Id,
+                                                          target_sprite_Id => my_Client.Target.Id));
+
    end respond;
 
 

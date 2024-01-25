@@ -6,6 +6,7 @@ with
      glib.Object,
 
      gtk.Adjustment,
+     gtk.Button,
      gtk.radio_Button,
      gtk.toggle_Button,
      gtk.text_Buffer,
@@ -24,6 +25,7 @@ is
        glib.Object,
 
        gtk.Box,
+       gtk.Button,
        gtk.gEntry,
        gtk.toggle_Button,
        gtk.radio_Button,
@@ -41,11 +43,21 @@ is
    --  This is the file from which we'll read our GTK UI description.
 
 
+   -----------
+   --- Widgets
+   --
+
+   -- Pace Buttons.
+   --
    halt_Button     : gtk_radio_Button;
    walk_Button     : gtk_radio_Button;
    jog_Button      : gtk_radio_Button;
    run_Button      : gtk_radio_Button;
    dash_Button     : gtk_radio_Button;
+
+   -- Movement Controls
+   --
+   approach_Button : gtk_Button;
 
 
 
@@ -62,6 +74,12 @@ is
 
 
 
+   -------------------
+   --- Event Handlers.
+   --
+
+   -- Chat
+   --
 
    procedure on_Chat_activated (Self : access Gtk_Entry_Record'Class)
    is
@@ -74,9 +92,7 @@ is
 
 
 
-
-   ---------
-   --- Paces
+   -- Paces
    --
 
    procedure on_halt_Pace_selected (Self : access Gtk_Toggle_Button_Record'Class)
@@ -169,6 +185,27 @@ is
 
 
 
+   -- Movement Controls
+   --
+
+   procedure on_approach_Button_clicked (Self : access Gtk_Button_Record'Class)
+   is
+      use arcana.Server;
+   begin
+      --  log ("on_approach_Button_clicked");
+
+      my_Client.emit (pc_approach_Event' (sprite_Id => my_Client.pc_sprite_Id));
+
+      --  my_Client.Pace := Dash;
+      --  update_UI;
+      --
+      --  my_Client.emit (pc_pace_Event' (sprite_Id => my_Client.pc_sprite_Id,
+      --                                  Pace      => Dash));
+      --  my_Client.chat_Entry.grab_Focus;     -- Change focus so that left/right arrow keys do not affect pace.
+   end on_approach_Button_clicked;
+
+
+
 
    --------------
    --- Setup Gtk.
@@ -197,7 +234,8 @@ is
          Error_free (Error);
       end if;
 
-      --  Set our widgets.
+      ----------------------
+      ---  Find our widgets.
       --
       Self.top_Window    := gtk_Window          (Builder.get_Object ("Top"));
       Self.gl_Box        := gtk_Box             (Builder.get_Object ("gl_Box"));
@@ -213,6 +251,9 @@ is
 
       Self.target_Name   := gtk_Label           (Builder.get_Object ("target_Name"));
 
+      approach_Button    := gtk_Button          (Builder.get_Object ("approach_Button"));
+
+
       -- Pace radio buttons.
       --
       halt_Button := gtk_radio_Button (Builder.get_Object (Name => "halt_Button"));
@@ -221,20 +262,28 @@ is
       run_Button  := gtk_radio_Button (Builder.get_Object (Name =>  "run_Button"));
       dash_Button := gtk_radio_Button (Builder.get_Object (Name => "dash_Button"));
 
+
+      ---------------------------
+      ---  Configure our widgets.
+      --
+      Self.events_Text.set_size_Request (Width  =>  -1,
+                                         Height => 100);
+
+      -----------------------
+      ---  Set up GTK events.
+      --
+      do_Connect (Builder);
+
+      Self.chat_Entry.on_Activate (call => on_Chat_activated'Access);
+
       halt_Button.on_Toggled (on_halt_Pace_selected'Access);
       walk_Button.on_Toggled (on_walk_Pace_selected'Access);
       jog_Button .on_Toggled ( on_jog_Pace_selected'Access);
       run_Button .on_Toggled ( on_run_Pace_selected'Access);
       dash_Button.on_Toggled (on_dash_Pace_selected'Access);
 
-      --  Configure our widgets.
-      --
-      Self.events_Text.set_size_Request (Width  =>  -1,
-                                         Height => 100);
-      --  Set up GTK events.
-      --
-      do_Connect (Builder);
-      Self.chat_Entry.on_Activate (call => on_Chat_activated'Access);
+      approach_Button.On_Clicked (on_approach_Button_clicked'Access);
+
 
       --  Set the size of the main window.
       --

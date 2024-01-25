@@ -65,6 +65,11 @@ is
       end record;
 
 
+   type pc_approach_Event is new lace.Event.item with
+      record
+         sprite_Id : gel.sprite_Id;
+      end record;
+
 
    -------------
    --- Targeting
@@ -74,6 +79,13 @@ is
       record
          sprite_Id   : gel.sprite_Id;         -- The sprite which has targeted the ground.
          ground_Site : gel.math.Vector_3;     -- Site where the ground has been targeted.
+      end record;
+
+
+   type target_sprite_Event is new lace.Event.item with
+      record
+         sprite_Id        : gel.sprite_Id;     -- The targeting sprite.
+         target_sprite_Id : gel.sprite_Id;     -- The targeted  sprite.
       end record;
 
 
