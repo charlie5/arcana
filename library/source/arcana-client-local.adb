@@ -338,7 +338,7 @@ is
       begin
          while Self.Applet.is_open
          loop
-            -- Report evolves rate.
+            --- Report evolves rate.
             --
 
             evolve_Count := evolve_Count + 1;
@@ -348,14 +348,14 @@ is
             begin
                if Now > next_evolve_Report
                then
-                  --  log ("                                               Client ~ Evolves per second:" & evolve_Count'Image);
+                  log ("                                               Client ~ Evolves per second:" & evolve_Count'Image);
                   next_evolve_Report := next_evolve_Report + 1.0;
                   evolve_Count       := 0;
                end if;
             end;
 
 
-            -- Occlude any hidden sprites.
+            --- Occlude any hidden sprites.
             --
 
             if Self.pc_Sprite /= null
@@ -436,10 +436,7 @@ is
             end if;
 
 
-
-
-
-            -- Evolve the world, handle new events and update the screen.
+            --- Evolve the world, handle new events and update the screen.
             --
 
             Self.Applet.freshen;
@@ -499,7 +496,8 @@ is
               or not  Self.Applet.is_open;
 
 
-            delay until next_evolve_Time;
+            ---  Delay until next_evolve_Time;
+            --
             next_evolve_Time := next_evolve_Time + 1.0 / 60.0;
          end loop;
       end;
