@@ -1,11 +1,13 @@
 with
      arcana.Server.Terrain,
      arcana.Server.all_Clients,
+     --  arcana.Character,
 
      gel.World.server,
      gel.Sprite,
      gel.Forge,
      gel.Events,
+     float_Math.Random,
 
      openGL.Palette,
 
@@ -525,6 +527,9 @@ is
    --- Open/Run/Close.
    --
 
+   Boo : gel.Sprite.view;
+
+
    procedure open
    is
       use gel.Math;
@@ -539,16 +544,31 @@ is
                                                    Name     => "the One Tree",
                                                    Site     => [0.0, 0.0, 0.0],
                                                    Mass     =>  0.0,
-                                                   Bounce   =>  0.0,
+                                                   Bounce   =>  1.0,
                                                    Friction =>  0.0,
                                                    Radius   =>  2.0,
                                                    Texture  => openGL.to_Asset ("assets/tree7.png"));
       the_World.add (the_one_Tree);
 
+
+      -- Boo.
+      --
+      Boo := gel.Forge.new_circle_Sprite (in_World => the_World'Access,
+                                          Name     => "Boo",
+                                          Site     => [0.0, 10.0, 0.0],
+                                          Mass     =>  2.0,
+                                          Bounce   =>  1.0,
+                                          Friction =>  0.0,
+                                          Radius   =>  0.5,
+                                          Texture  => openGL.to_Asset ("assets/hound-1.png"));
+      Boo.user_Data_is (new sprite_Data);
+      the_World.add    (Boo);
+
+
       -- Terrain.
       --
-      --  Terrain.set_up_Boulders (in_World => the_World'Access);
-      --  Terrain.set_up_Trees    (in_World => the_World'Access);
+      Terrain.set_up_Boulders (in_World => the_World'Access);
+      Terrain.set_up_Trees    (in_World => the_World'Access);
    end open;
 
 
@@ -556,155 +576,180 @@ is
 
    procedure run
    is
-      use gel.Math;
+      use gel.Math,
+          ada.Calendar;
       use type gel.Sprite.any_user_Data_view;
 
+      next_evolve_Time   : ada.Calendar.Time := ada.Calendar.Clock;
+      next_evolve_Report : ada.Calendar.Time := next_evolve_Time;
+      evolve_Count       : Natural           := 0;
+
+      next_Boo_move_Time : ada.Calendar.Time := ada.Calendar.Clock;
+
    begin
-      declare
-         use ada.Calendar;
+      --  while the_World.is_open
+      loop
+         evolve_Count := evolve_Count + 1;
 
-         next_evolve_Time   : ada.Calendar.Time := ada.Calendar.Clock;
-         next_evolve_Report : ada.Calendar.Time := next_evolve_Time;
-         evolve_Count       : Natural           := 0;
+         declare
+            Now : constant ada.Calendar.TIme := ada.Calendar.Clock;
+         begin
+            if Now > next_evolve_Report
+            then
+               --  log ("Server ~ Evolves per second:" & evolve_Count'Image);
+               next_evolve_Report := next_evolve_Report + 1.0;
+               evolve_Count       := 0;
+            end if;
+         end;
 
-      begin
-         --  while the_World.is_open
+
+         world_Lock.acquire;
+
+         --  log (the_World.all_Sprites.fetch.Length'Image);
+
+         -- Movement.
+         --
+         for Each of the_World.all_Sprites.fetch
          loop
-            evolve_Count := evolve_Count + 1;
+            if Each.user_Data /= null
+            then
 
-            declare
-               Now : constant ada.Calendar.TIme := ada.Calendar.Clock;
-            begin
-               if Now > next_evolve_Report
-               then
-                  --  log ("Server ~ Evolves per second:" & evolve_Count'Image);
-                  next_evolve_Report := next_evolve_Report + 1.0;
-                  evolve_Count       := 0;
-               end if;
-            end;
+               declare
+                  use type gel.Sprite.view;
 
+                  the_sprite_Data : sprite_Data renames sprite_Data (Each.user_Data.all);
 
-            world_Lock.acquire;
+                  pace_Multiplier : constant array (Pace_t) of Real := [Halt => 0.0,
+                                                                        Walk => 0.5,
+                                                                        Jog  => 1.0,
+                                                                        Run  => 2.0,
+                                                                        Dash => 4.0];
+               begin
+                  Each.Speed_is (  the_sprite_Data.Movement
+                                 * pace_Multiplier (the_sprite_Data.Pace)
+                                 * Each.Spin);
 
-            -- Movement.
-            --
-            for Each of the_World.all_Sprites.fetch
-            loop
-               if Each.user_Data /= null
-               then
+                  --  log (the_sprite_Data.is_Approaching'Image);
 
-                  declare
-                     use type gel.Sprite.view;
+                  if    the_sprite_Data.Target /= null
+                    and the_sprite_Data.is_Approaching
+                  then
+                     the_sprite_Data.target_Site := the_sprite_Data.Target.Site;
+                  end if;
 
-                     the_sprite_Data : sprite_Data renames sprite_Data (Each.user_Data.all);
+                  --  if Each.Name = "Boo"
+                  --  then
+                  --     log (the_sprite_Data.target_Site'Image);
+                  --     log (the_sprite_Data.is_Approaching'Image);
+                  --  end if;
 
-                     pace_Multiplier : constant array (Pace_t) of Real := [Halt => 0.0,
-                                                                           Walk => 0.5,
-                                                                           Jog  => 1.0,
-                                                                           Run  => 2.0,
-                                                                           Dash => 4.0];
-                  begin
-                     Each.Speed_is (  the_sprite_Data.Movement
-                                    * pace_Multiplier (the_sprite_Data.Pace)
-                                    * Each.Spin);
+                  if the_sprite_Data.target_Site /= null_Site
+                  then
+                     declare
+                        use gel.linear_Algebra,
+                            gel.linear_Algebra_3D;
 
-                     --  log (the_sprite_Data.is_Approaching'Image);
+                        the_Delta : constant Vector_3 := the_sprite_Data.target_Site - Each.Site;
 
-                     if    the_sprite_Data.Target /= null
-                       and the_sprite_Data.is_Approaching
-                     then
-                        the_sprite_Data.target_Site := the_sprite_Data.Target.Site;
-                     end if;
+                     begin
+                        --  if Each.Name = "Boo"
+                        --  then
+                        --     log ("D: " & the_Delta'image);
+                        --  end if;
 
-                        --  log (the_sprite_Data.target_Site'Image);
+                        if almost_Equals (the_Delta,
+                                          [0.0, 0.0, 0.0],
+                                          Tolerance => 0.1)
+                        then     -- Has reached the targeted site.
+                           the_sprite_Data.target_Site    := null_Site;
+                           the_sprite_Data.is_Approaching := False;
 
-                        if the_sprite_Data.target_Site /= null_Site
-                        then
+                        else     -- Still moving towards the target site.
+                           Each.Speed_is (  Each.Speed
+                                            +   pace_Multiplier (the_sprite_Data.Pace)
+                                            * Normalised (the_Delta)
+                                            * 4.0);
                            declare
-                              use gel.linear_Algebra,
-                                  gel.linear_Algebra_3D;
+                              use gel.Geometry_2d;
 
-                              the_Delta : constant Vector_3 := the_sprite_Data.target_Site - Each.Site;
+                              Site  : constant gel.Geometry_2d.Site := [the_Delta (1),
+                                                                        the_Delta (2)];
+                              Angle : constant Real                 := to_Polar (Site).Angle;
+                           begin
+                              --  log ("Angle:" & Angle'Image);
 
-                        begin
-                           --  log (the_Delta'image);
+                              Each.Spin_is (to_Rotation (Axis  => [0.0, 0.0, 1.0],
+                                                         Angle => Angle - to_Radians (90.0)));
 
-                              if almost_Equals (the_Delta,
-                                                [0.0, 0.0, 0.0],
-                                                Tolerance => 0.1)
-                              then     -- Has reached the targeted site.
-                              the_sprite_Data.target_Site    := null_Site;
-                              the_sprite_Data.is_Approaching := False;
-
-                              else     -- Still moving towards the target site.
-                                 Each.Speed_is (  Each.Speed
-                                                +   pace_Multiplier (the_sprite_Data.Pace)
-                                                  * Normalised (the_Delta)
-                                                  * 4.0);
-                                 declare
-                                      use gel.Geometry_2d;
-
-                                    Site  : constant gel.Geometry_2d.Site := [the_Delta (1),
-                                                                              the_Delta (2)];
-                                    Angle : constant Real                 := to_Polar (Site).Angle;
-                                 begin
-                                    --  log ("Angle:" & Angle'Image);
-
-                                    Each.Spin_is (to_Rotation (Axis  => [0.0, 0.0, 1.0],
-                                                               Angle => Angle - to_Radians (90.0)));
-
-                                    --  Each.xy_Spin_is (Angle - to_Radians (90.0));
-                                    --
-                                    --  Each.Gyre_is (  [0.0, 0.0, 1.0]
-                                    --                * (Angle - to_Radians (90.0)));
-                                 end;
-                              end if;
+                              --  Each.xy_Spin_is (Angle - to_Radians (90.0));
+                              --
+                              --  Each.Gyre_is (  [0.0, 0.0, 1.0]
+                              --                * (Angle - to_Radians (90.0)));
                            end;
                         end if;
+                     end;
+                  end if;
 
-                     --  end if;
-                  end;
+                  --  end if;
+               end;
 
-               else
-                  null;
-               end if;
+            else
+               null;
+            end if;
 
-            end loop;
-
-            world_Lock.release;
-
-
-            world_Lock.acquire;
-            the_World .evolve;     -- Advance the world in time.
-            world_Lock.release;
-
-
-            -- Send chat messages
-            --
-            declare
-               use lace.Text;
-
-               Messages : client_message_Pairs (1 .. 50);
-               Count    : Natural;
-            begin
-               chat_Messages.fetch (Messages,
-                                    Count);
-               for i in 1 .. Count
-               loop
-                  for Each of fetch_all_Clients
-                  loop
-                     Each.receive_Chat (Messages (i).Client.Name
-                                        & " says '"
-                                        & to_String (Messages (i).Message)
-                                        & "'.");
-                  end loop;
-               end loop;
-            end;
-
-            delay until next_evolve_Time;
-            next_evolve_Time := next_evolve_Time + 1.0 / 60.0;
          end loop;
-      end;
+
+
+         declare
+            boo_Info :          sprite_Data       renames sprite_Data (Boo.user_Data.all);
+            Now      : constant ada.Calendar.TIme :=      ada.Calendar.Clock;
+         begin
+            if Now > next_Boo_move_Time
+            then
+               next_Boo_move_Time      := Now + 5.0;
+               --  boo_Info.target_Site    := [-10.0,  10.0,  0.0];
+               boo_Info.target_Site    := [gel.Math.Random.random_Real (-20.0, 20.0),
+                                           gel.Math.Random.random_Real (-20.0, 20.0),
+                                           gel.Math.Random.random_Real (-20.0, 20.0)];
+               boo_Info.is_Approaching := True;
+               boo_Info.Pace           := Run;
+            end if;
+         end;
+
+
+         world_Lock.release;
+
+
+         world_Lock.acquire;
+         the_World .evolve;     -- Advance the world in time.
+         world_Lock.release;
+
+
+         -- Send chat messages
+         --
+         declare
+            use lace.Text;
+
+            Messages : client_message_Pairs (1 .. 50);
+            Count    : Natural;
+         begin
+            chat_Messages.fetch (Messages,
+                                 Count);
+            for i in 1 .. Count
+            loop
+               for Each of fetch_all_Clients
+               loop
+                  Each.receive_Chat (Messages (i).Client.Name
+                                     & " says '"
+                                     & to_String (Messages (i).Message)
+                                     & "'.");
+               end loop;
+            end loop;
+         end;
+
+         delay until next_evolve_Time;
+         next_evolve_Time := next_evolve_Time + 1.0 / 60.0;
+      end loop;
    end run;
 
 
