@@ -19,6 +19,7 @@ with
 
      system.RPC,
 
+     ada.Tags,
      ada.Calendar,
      ada.Exceptions;
 
@@ -397,16 +398,30 @@ is
 
                for Each of my_Client.client_World.all_Sprites.fetch
                loop
-                  if Each /= my_Client.pc_Sprite
+                  if    Each /= my_Client.pc_Sprite
+                    and Each /= my_Client.target_Marker
                   then
                      declare
-                        the_sprite_Info : sprite_Info renames sprite_Info (Each.user_Data.all);
+                        use openGL.texture_Set;
+
+                        the_Sprite      : gel.Sprite.view renames Each;
+                        the_sprite_Info : sprite_Info     renames sprite_Info (the_Sprite.user_Data.all);
                      begin
                         if the_sprite_Info.occlude_Countdown > 0
                         then
                            Each.is_Visible (Now => True);
+                           the_sprite_Info.fade_Level := 0.0;
+                           the_Sprite.Visual.Model.Fade_is (Which => 1,
+                                                            Now   => the_sprite_Info.fade_Level);
                         else
-                           Each.is_Visible (Now => False);
+                           --  Each.is_Visible (Now => False);
+                           --  log (the_Sprite.Name & " " & ada.tags.Expanded_Name (the_Sprite.Visual.Model.all'Tag));
+
+                           the_sprite_Info.fade_Level := fade_Level'Min (the_sprite_Info.fade_Level + 0.01,
+                                                                         1.0);
+                           the_Sprite.Visual.Model.Fade_is (Which => 1,
+                                                            Now   => the_sprite_Info.fade_Level);
+
                         end if;
 
                         the_sprite_Info.occlude_Countdown := the_sprite_Info.occlude_Countdown - 1;

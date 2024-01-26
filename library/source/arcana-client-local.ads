@@ -10,6 +10,8 @@ with
      gel.World .client,
      gel.Sprite,
 
+     openGL.texture_Set,
+
      gtk.Box,
      gtk.Label,
      gtk.gEntry,
@@ -133,7 +135,8 @@ private
 
    type sprite_Info is new gel.Sprite.any_user_Data with
       record
-         occlude_Countdown : Integer := 0;
+         occlude_Countdown : Integer                       := 0;
+         fade_Level        : openGL.texture_Set.fade_Level := 0.0;
       end record;
 
 
