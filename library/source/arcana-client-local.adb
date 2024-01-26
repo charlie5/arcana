@@ -385,9 +385,9 @@ is
 
                            if the_Sprite.is_Static
                            then
-                              the_sprite_Info.occlude_Countdown := 600;
-                           else
                               the_sprite_Info.occlude_Countdown := 60;
+                           else
+                              the_sprite_Info.occlude_Countdown :=  6;
                            end if;
                         end;
                      end if;
@@ -396,38 +396,42 @@ is
                end loop;
 
 
-               for Each of my_Client.client_World.all_Sprites.fetch
-               loop
-                  if    Each /= my_Client.pc_Sprite
-                    and Each /= my_Client.target_Marker
-                  then
-                     declare
-                        use openGL.texture_Set;
+               --- Sprite occlusion.
+               --
 
-                        the_Sprite      : gel.Sprite.view renames Each;
-                        the_sprite_Info : sprite_Info     renames sprite_Info (the_Sprite.user_Data.all);
-                     begin
-                        if the_sprite_Info.occlude_Countdown > 0
-                        then
-                           Each.is_Visible (Now => True);
-                           the_sprite_Info.fade_Level := 0.0;
+               if evolve_Count mod 4 = 0     -- Only need to do occlusion check a few times per second.
+               then
+                  for Each of my_Client.client_World.all_Sprites.fetch
+                  loop
+                     if    Each /= my_Client.pc_Sprite
+                       and Each /= my_Client.target_Marker
+                     then
+                        declare
+                           use openGL.texture_Set;
+
+                           the_Sprite      : gel.Sprite.view renames Each;
+                           the_sprite_Info : sprite_Info     renames sprite_Info (the_Sprite.user_Data.all);
+                        begin
+                           if the_sprite_Info.occlude_Countdown > 0
+                           then
+                              Each.is_Visible (Now => True);
+                              the_sprite_Info.fade_Level := 0.0;
+                           else
+                              the_sprite_Info.fade_Level := fade_Level'Min (the_sprite_Info.fade_Level + 0.04,
+                                                                            1.0);
+                              if the_sprite_Info.fade_Level >= 0.99
+                              then
+                                 Each.is_Visible (Now => False);
+                              end if;
+                           end if;
+
                            the_Sprite.Visual.Model.Fade_is (Which => 1,
                                                             Now   => the_sprite_Info.fade_Level);
-                        else
-                           --  Each.is_Visible (Now => False);
-                           --  log (the_Sprite.Name & " " & ada.tags.Expanded_Name (the_Sprite.Visual.Model.all'Tag));
-
-                           the_sprite_Info.fade_Level := fade_Level'Min (the_sprite_Info.fade_Level + 0.01,
-                                                                         1.0);
-                           the_Sprite.Visual.Model.Fade_is (Which => 1,
-                                                            Now   => the_sprite_Info.fade_Level);
-
-                        end if;
-
-                        the_sprite_Info.occlude_Countdown := the_sprite_Info.occlude_Countdown - 1;
-                     end;
-                  end if;
-               end loop;
+                           the_sprite_Info.occlude_Countdown := the_sprite_Info.occlude_Countdown - 1;
+                        end;
+                     end if;
+                  end loop;
+               end if;
 
             end if;
 
