@@ -163,6 +163,8 @@ is
    begin
       --  log ("'" & the_Sprite.Name & "' added.");
 
+      the_Sprite.user_Data_is (new sprite_Info);
+
       --- Add a 'clicked' response to each newly added sprite.
       --
       new_Response.Sprite := the_Sprite;

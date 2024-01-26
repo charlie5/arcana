@@ -324,8 +324,8 @@ is
       use type gel.Sprite.view,
                gel.sprite_Id;
    begin
-      ------------
-      -- Main Loop
+      -------------
+      --- Main Loop
       --
       declare
          use ada.Calendar;
@@ -337,6 +337,9 @@ is
       begin
          while Self.Applet.is_open
          loop
+            -- Report evolves rate.
+            --
+
             evolve_Count := evolve_Count + 1;
 
             declare
@@ -351,7 +354,76 @@ is
             end;
 
 
-            Self.Applet.freshen;     -- Evolve the world, handle new events and update the screen.
+            -- Occlude any hidden sprites.
+            --
+
+            if Self.pc_Sprite /= null
+            then
+               for Angle in 0 .. 359
+               loop
+                  declare
+                     use gel.World,
+                         gel.Geometry_2D;
+
+                     the_Angle : constant Radians       := to_Radians (Degrees (Angle));
+                     ray_End   : constant Vector_2      := to_Site    ((Angle  => the_Angle,
+                                                                        Extent => 50.0));
+
+                     Collision : constant ray_Collision := Self.client_World.cast_Ray (From => Self.pc_Sprite.Site,
+                                                                                       To   => Vector_3 (ray_End & 0.0));
+                  begin
+                     --  log ("ray_End => " & ray_End'Image);
+
+                     if Collision.near_Sprite /= null
+                     then
+                        declare
+                           the_Sprite      : gel.Sprite.view renames Collision.near_Sprite;
+                           the_sprite_Info : sprite_Info     renames sprite_Info (the_Sprite.user_Data.all);
+                        begin
+                           --  log (the_sprite_Info'Image);
+
+                           if the_Sprite.is_Static
+                           then
+                              the_sprite_Info.occlude_Countdown := 600;
+                           else
+                              the_sprite_Info.occlude_Countdown := 60;
+                           end if;
+                        end;
+                     end if;
+
+                  end;
+               end loop;
+
+
+               for Each of my_Client.client_World.all_Sprites.fetch
+               loop
+                  if Each /= my_Client.pc_Sprite
+                  then
+                     declare
+                        the_sprite_Info : sprite_Info renames sprite_Info (Each.user_Data.all);
+                     begin
+                        if the_sprite_Info.occlude_Countdown > 0
+                        then
+                           Each.is_Visible (Now => True);
+                        else
+                           Each.is_Visible (Now => False);
+                        end if;
+
+                        the_sprite_Info.occlude_Countdown := the_sprite_Info.occlude_Countdown - 1;
+                     end;
+                  end if;
+               end loop;
+
+            end if;
+
+
+
+
+
+            -- Evolve the world, handle new events and update the screen.
+            --
+
+            Self.Applet.freshen;
 
             if    Self.pc_Sprite     = null
               and Self.pc_sprite_Id /= gel.null_sprite_Id
@@ -361,6 +433,8 @@ is
                if Self.pc_Sprite = null
                then
                   log ("Warning: Unable to fetch PC sprite" & Self.pc_sprite_Id'Image & ".");
+               else
+                  Self.pc_Sprite.user_Data_is (new sprite_Info);
                end if;
             end if;
 
@@ -369,7 +443,8 @@ is
             --
             if Self.pc_Sprite /= null
             then
-               Self.Applet.Camera.Site_is (Self.pc_Sprite.Site + [0.0, 0.0, Self.Applet.Camera.Site (3)]);
+               Self.Applet.Camera.Site_is (  Self.pc_Sprite.Site
+                                           + [0.0, 0.0, Self.Applet.Camera.Site (3)]);
             end if;
 
 

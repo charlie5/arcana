@@ -128,6 +128,17 @@ private
 
 
    ---------------
+   --- Sprite Info
+   --
+
+   type sprite_Info is new gel.Sprite.any_user_Data with
+      record
+         occlude_Countdown : Integer := 0;
+      end record;
+
+
+
+   ---------------
    --- Convenience
    --
    function client_World (Self : in Item) return gel.World.client.view;
