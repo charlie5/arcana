@@ -65,7 +65,7 @@ is
 
          -- Set up the camera.
          --
-         Self.Applet.Camera.Site_is ([0.0, 0.0, 20.0]);
+         Self.Applet.Camera.Site_is ([0.0, 0.0, 30.0]);
 
          -- Set the lights position.
          --
@@ -369,7 +369,7 @@ is
             --
             if Self.pc_Sprite /= null
             then
-               Self.Applet.Camera.Site_is (Self.pc_Sprite.Site + [0.0, 0.0, 40.0]);
+               Self.Applet.Camera.Site_is (Self.pc_Sprite.Site + [0.0, 0.0, Self.Applet.Camera.Site (3)]);
             end if;
 
 
