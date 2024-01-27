@@ -272,7 +272,7 @@ is
       the_World.add (the_one_Tree);
 
 
-      -- Boo.
+      -- 'Boo' test dog.
       --
       Boo := gel.Forge.new_circle_Sprite (in_World => the_World'Access,
                                           Name     => "Boo",
@@ -326,8 +326,6 @@ is
 
          world_Lock.acquire;
 
-         --  log (the_World.all_Sprites.fetch.Length'Image);
-
          -- Movement.
          --
          for Each of the_World.all_Sprites.fetch
@@ -350,19 +348,11 @@ is
                                  * pace_Multiplier (the_sprite_Data.Pace)
                                  * Each.Spin);
 
-                  --  log (the_sprite_Data.is_Approaching'Image);
-
                   if    the_sprite_Data.Target /= null
                     and the_sprite_Data.is_Approaching
                   then
                      the_sprite_Data.target_Site := the_sprite_Data.Target.Site;
                   end if;
-
-                  --  if Each.Name = "Boo"
-                  --  then
-                  --     log (the_sprite_Data.target_Site'Image);
-                  --     log (the_sprite_Data.is_Approaching'Image);
-                  --  end if;
 
                   if the_sprite_Data.target_Site /= local.null_Site
                   then
@@ -373,11 +363,6 @@ is
                         the_Delta : constant Vector_3 := the_sprite_Data.target_Site - Each.Site;
 
                      begin
-                        --  if Each.Name = "Boo"
-                        --  then
-                        --     log ("D: " & the_Delta'image);
-                        --  end if;
-
                         if almost_Equals (the_Delta,
                                           [0.0, 0.0, 0.0],
                                           Tolerance => 0.1)
@@ -397,21 +382,12 @@ is
                                                                         the_Delta (2)];
                               Angle : constant Real                 := to_Polar (Site).Angle;
                            begin
-                              --  log ("Angle:" & Angle'Image);
-
                               Each.Spin_is (to_Rotation (Axis  => [0.0, 0.0, 1.0],
                                                          Angle => Angle - to_Radians (90.0)));
-
-                              --  Each.xy_Spin_is (Angle - to_Radians (90.0));
-                              --
-                              --  Each.Gyre_is (  [0.0, 0.0, 1.0]
-                              --                * (Angle - to_Radians (90.0)));
                            end;
                         end if;
                      end;
                   end if;
-
-                  --  end if;
                end;
 
             else
@@ -428,7 +404,6 @@ is
             if Now > next_Boo_move_Time
             then
                next_Boo_move_Time      := Now + 5.0;
-               --  boo_Info.target_Site    := [-10.0,  10.0,  0.0];
                boo_Info.target_Site    := [gel.Math.Random.random_Real (-20.0, 20.0),
                                            gel.Math.Random.random_Real (-20.0, 20.0),
                                            gel.Math.Random.random_Real (-20.0, 20.0)];
