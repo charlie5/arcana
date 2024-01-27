@@ -4,6 +4,7 @@ with
      arcana.Server.all_Clients,
      arcana.Server.Responses,
      arcana.Server.Network,
+     arcana.Server.chat,
 --  arcana.Character,
 
      gel.World.server,
@@ -215,7 +216,6 @@ is
 
 
 
-
    function fetch_all_Clients return arcana.Client.views
    is
       all_Info : constant client_Info_array := all_Clients.Info;
@@ -231,121 +231,12 @@ is
 
 
 
-
-   --  task check_Client_lives
-   --  is
-   --     entry halt;
-   --  end check_Client_lives;
-   --
-   --
-   --  task body check_Client_lives
-   --  is
-   --     use ada.Text_IO;
-   --     Done : Boolean := False;
-   --  begin
-   --     loop
-   --        select
-   --           accept halt
-   --           do
-   --              Done := True;
-   --           end halt;
-   --        or
-   --           delay 15.0;
-   --        end select;
-   --
-   --        exit when Done;
-   --
-   --        declare
-   --           all_Info : constant client_Info_array := all_Clients.Info;
-   --        begin
-   --           for Each of all_Info
-   --           loop
-   --              begin
-   --                 Each.Client.ping;
-   --              exception
-   --                 when system.RPC.communication_Error
-   --                    | storage_Error =>
-   --
-   --                    log (+Each.Name & " has died.");
-   --                    deregister (Each.Client);
-   --              end;
-   --           end loop;
-   --
-   --        end;
-   --     end loop;
-   --
-   --  exception
-   --     when E : others =>
-   --        new_Line;
-   --        put_Line ("Error in check_Client_lives task.");
-   --        new_Line;
-   --        put_Line (ada.Exceptions.exception_Information (E));
-   --  end check_Client_lives;
-
-
-
-
-
-   ------------------
-   --- Chat messages.
-   --
-
-   type client_message_Pair is
-      record
-         Client  : arcana.Client.view;
-         Message : lace.Text.item_256;
-      end record;
-
-   type client_message_Pairs is array (Positive range <>) of client_message_Pair;
-
-
-
-   protected chat_Messages
-   is
-      procedure add   (From     : in Client.view;
-                       Message  : in String);
-
-      procedure fetch (the_Messages : out client_message_Pairs;
-                       the_Count    : out Natural);
-
-   private
-      Messages : client_message_Pairs (1 .. 50);
-      Count    : Natural := 0;
-   end chat_Messages;
-
-
-   protected body chat_Messages
-   is
-      procedure add   (From     : in Client.view;
-                       Message  : in String)
-      is
-         use lace.Text.forge;
-      begin
-         Count := Count + 1;
-         Messages (Count) := (Client => From,
-                              Message => to_Text_256 (Message));
-      end add;
-
-
-      procedure fetch (the_Messages : out client_message_Pairs;
-                       the_Count    : out Natural)
-      is
-      begin
-         the_Messages (1 .. Count) := Messages (1 .. Count);
-         the_Count                 := Count;
-         Count                     := 0;
-      end fetch;
-
-   end chat_Messages;
-
-
-
    procedure add_Chat (From    : in Client.view;
                        Message : in String)
    is
    begin
-      chat_Messages.add (From    => From,
-                         Message => Message);
+      chat.chat_Messages.add (From    => From,
+                              Message => Message);
    end add_Chat;
 
 
@@ -560,11 +451,11 @@ is
          declare
             use lace.Text;
 
-            Messages : client_message_Pairs (1 .. 50);
+            Messages : chat.client_message_Pairs (1 .. 50);
             Count    : Natural;
          begin
-            chat_Messages.fetch (Messages,
-                                 Count);
+            chat.chat_Messages.fetch (Messages,
+                                      Count);
             for i in 1 .. Count
             loop
                for Each of fetch_all_Clients
@@ -576,6 +467,7 @@ is
                end loop;
             end loop;
          end;
+
 
          delay until next_evolve_Time;
          next_evolve_Time := next_evolve_Time + 1.0 / 60.0;
