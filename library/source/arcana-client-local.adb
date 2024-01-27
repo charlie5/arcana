@@ -358,6 +358,9 @@ is
             then
                Self.occlude_hidden_dynamic_Sprites;
             end if;
+
+            Self.Applet.Camera.Site_is (  Self.pc_Sprite.Site                           -- Move the camera to follow the players sprite.
+                                        + [0.0, 0.0, Self.Applet.Camera.Site (3)]);
          end if;
 
 
@@ -365,27 +368,15 @@ is
          --
          Self.Applet.freshen;
 
+
+         --- Setup our PC sprite.
+         --
          if    Self.pc_Sprite     = null
            and Self.pc_sprite_Id /= gel.null_sprite_Id
          then
             Self.pc_Sprite := Self.client_World.fetch_Sprite (Self.pc_sprite_Id);
-            Self.pc_Sprite.is_Visible (True);
-
-            if Self.pc_Sprite = null
-            then
-               log ("Warning: Unable to fetch PC sprite" & Self.pc_sprite_Id'Image & ".");
-            else
-               Self.pc_Sprite.user_Data_is (new sprite_Info);
-            end if;
-         end if;
-
-
-         --- Move the camera to follow the players sprite.
-         --
-         if Self.pc_Sprite /= null
-         then
-            Self.Applet.Camera.Site_is (  Self.pc_Sprite.Site
-                                        + [0.0, 0.0, Self.Applet.Camera.Site (3)]);
+            Self.pc_Sprite.is_Visible   (True);
+            Self.pc_Sprite.user_Data_is (new sprite_Info);
          end if;
 
 
