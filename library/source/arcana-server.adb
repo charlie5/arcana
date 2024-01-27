@@ -1,7 +1,9 @@
 with
+     arcana.Server.local,
      arcana.Server.Terrain,
      arcana.Server.all_Clients,
-     --  arcana.Character,
+     arcana.Server.Responses,
+--  arcana.Character,
 
      gel.World.server,
      gel.Sprite,
@@ -48,6 +50,7 @@ is
 
 
 
+   ---------------
    --- World lock.
    --
 
@@ -76,185 +79,6 @@ is
       end release;
 
    end world_Lock;
-
-
-
-   ---------------
-   --- Sprite Data
-   --
-
-   null_Site : constant gel.math.Vector_3 := [gel.math.Real'Last,
-                                              gel.math.Real'Last,
-                                              gel.math.Real'Last];
-
-
-   type sprite_Data is new gel.Sprite.any_user_Data with
-      record
-         Pace           : Pace_t            := Halt;
-         Movement       : gel.Math.Vector_3 := gel.Math.Origin_3D;
-         Spin           : gel.Math.Degrees  :=  0.0;
-         Target         : gel.Sprite.view;
-         target_Site    : gel.Math.Vector_3 := null_Site;
-         is_Approaching : Boolean           := False;
-      end record;
-
-
-   --------------------
-   --- pc_move_Response
-   --
-
-   type pc_move_Response is new lace.Response.item with
-      record
-         null;
-      end record;
-
-
-   overriding
-   procedure respond (Self : in out pc_move_Response;   to_Event : in lace.Event.item'Class)
-   is
-      use gel.Math;
-
-      the_Event       : constant pc_move_Event           := pc_move_Event          (to_Event);
-      the_Sprite      :          gel.Sprite.view    renames the_World.fetch_Sprite (the_Event.sprite_Id);
-      the_sprite_Data :          server.sprite_Data renames server.sprite_Data     (the_Sprite.user_Data.all);
-
-   begin
-      if the_Event.On
-      then
-         case the_Event.Direction
-         is
-            when Forward  => the_sprite_Data.Movement := the_sprite_Data.Movement + [0.0,  4.0, 0.0];
-            when Backward => the_sprite_Data.Movement := the_sprite_Data.Movement + [0.0, -4.0, 0.0];
-            when Left     => the_sprite_Data.Spin     := the_sprite_Data.Spin     + 180.0;
-            when Right    => the_sprite_Data.Spin     := the_sprite_Data.Spin     - 180.0;
-         end case;
-      else
-         case the_Event.Direction
-         is
-            when Forward  => the_sprite_Data.Movement := the_sprite_Data.Movement + [ 0.0, -4.0, 0.0];
-            when Backward => the_sprite_Data.Movement := the_sprite_Data.Movement + [ 0.0,  4.0, 0.0];
-            when Left     => the_sprite_Data.Spin     := the_sprite_Data.Spin     - 180.0;
-            when Right    => the_sprite_Data.Spin     := the_sprite_Data.Spin     + 180.0;
-         end case;
-      end if;
-
-      the_Sprite.Gyre_is ([0.0,
-                           0.0,
-                           to_Radians (the_sprite_Data.Spin)]);
-   end respond;
-
-
-   the_pc_move_Response : aliased pc_move_Response;
-
-
-
-   --------------------
-   --- pc_pace_Response
-   --
-
-   type pc_pace_Response is new lace.Response.item with null record;
-
-   overriding
-   procedure respond (Self : in out pc_pace_Response;   to_Event : in lace.Event.item'Class)
-   is
-      the_Event       : constant pc_pace_Event           := pc_pace_Event          (to_Event);
-      the_Sprite      :          gel.Sprite.view    renames the_World.fetch_Sprite (the_Event.sprite_Id);
-      the_sprite_Data :          server.sprite_Data renames server.sprite_Data     (the_Sprite.user_Data.all);
-   begin
-      the_sprite_Data.Pace := the_Event.Pace;
-   end respond;
-
-
-   the_pc_pace_Response : aliased pc_pace_Response;
-
-
-
-   ---------------------------
-   --- pc_approaching_Response
-   --
-
-   type pc_approaching_Response is new lace.Response.item with null record;
-
-   overriding
-   procedure respond (Self : in out pc_approaching_Response;   to_Event : in lace.Event.item'Class)
-   is
-      the_Event       : constant pc_approach_Event       := pc_approach_Event       (to_Event);
-      the_Sprite      :          gel.Sprite.view    renames the_World.fetch_Sprite  (the_Event.sprite_Id);
-      the_sprite_Data :          server.sprite_Data renames server.sprite_Data      (the_Sprite.user_Data.all);
-   begin
-      the_sprite_Data.is_Approaching := True;
-   end respond;
-
-
-   the_pc_approaching_Response : aliased pc_approaching_Response;
-
-
-
-   --------------------------
-   --- target_ground_Response
-   --
-
-   type target_ground_Response is new lace.Response.item with
-      record
-         null; -- targeting_Sprite : gel.sprite_Id;
-      end record;
-
-
-   overriding
-   procedure respond (Self : in out target_ground_Response;   to_Event : in lace.Event.item'Class)
-   is
-      use Gel;
-
-      the_Event       : constant target_ground_Event     := target_ground_Event     (to_Event);
-      the_Sprite      :          gel.Sprite.view    renames the_World.fetch_Sprite  (the_Event.sprite_Id);
-      the_sprite_Data :          server.sprite_Data renames server.sprite_Data      (the_Sprite.user_Data.all);
-
-   begin
-      --  if the_Event.sprite_Id = null_sprite_Id
-      --  then   -- The ground has been targeted.
-      the_sprite_Data.Target         := null;
-      the_sprite_Data.is_Approaching := False;
-      the_sprite_Data.target_Site    := the_Event.ground_Site;
-      --  end if;
-   end respond;
-
-
-   the_target_ground_Response : aliased target_ground_Response;
-
-
-
-   --------------------------
-   --- target_sprite_Response
-   --
-
-   type target_sprite_Response is new lace.Response.item with
-      record
-         null; -- targeting_Sprite : gel.sprite_Id;
-      end record;
-
-
-   overriding
-   procedure respond (Self : in out target_sprite_Response;   to_Event : in lace.Event.item'Class)
-   is
-      use Gel;
-
-      the_Event       : constant target_sprite_Event     := target_sprite_Event     (to_Event);
-      the_Sprite      :          gel.Sprite.view    renames the_World.fetch_Sprite  (the_Event.sprite_Id);
-      the_sprite_Data :          server.sprite_Data renames server.sprite_Data      (the_Sprite.user_Data.all);
-      target_Sprite   :          gel.Sprite.view    renames the_World.fetch_Sprite  (the_Event.target_sprite_Id);
-   begin
-      --  if the_Event.sprite_Id = null_sprite_Id
-      --  then   -- The ground has been targeted.
-      the_sprite_Data.Target      := target_Sprite;
-      --  the_sprite_Data.target_Site := target_Sprite.Site;
-      --  end if;
-   end respond;
-
-
-   the_target_sprite_Response : aliased target_sprite_Response;
-
-
-
 
 
 
@@ -294,7 +118,7 @@ is
                                                     Radius   => 0.5,
                                                     Color    => (Green, openGL.Opaque),
                                                     Texture  => openGL.to_Asset ("assets/human.png"));
-         the_Player.user_Data_is (new sprite_Data);
+         the_Player.user_Data_is (new local.sprite_Data);
          the_World.add (the_Player);
          world_Lock.release;
 
@@ -320,27 +144,27 @@ is
 
       lace.Event.utility.connect (the_Observer  => the_World.local_Observer,
                                   to_Subject    => the_Client.as_Subject,
-                                  with_Response => the_pc_move_Response'Access,
+                                  with_Response => Responses.the_pc_move_Response'Access,
                                   to_Event_Kind => lace.Event.utility.to_Kind (pc_move_Event'Tag));
 
       lace.Event.utility.connect (the_Observer  => the_World.local_Observer,
                                   to_Subject    => the_Client.as_Subject,
-                                  with_Response => the_pc_pace_Response'Access,
+                                  with_Response => Responses.the_pc_pace_Response'Access,
                                   to_Event_Kind => lace.Event.utility.to_Kind (pc_pace_Event'Tag));
 
       lace.Event.utility.connect (the_Observer  => the_World.local_Observer,
                                   to_Subject    => the_Client.as_Subject,
-                                  with_Response => the_pc_approaching_Response'Access,
+                                  with_Response => Responses.the_pc_approaching_Response'Access,
                                   to_Event_Kind => lace.Event.utility.to_Kind (pc_approach_Event'Tag));
 
       lace.Event.utility.connect (the_Observer  => the_World.local_Observer,
                                   to_Subject    => the_Client.as_Subject,
-                                  with_Response => the_target_ground_Response'Access,
+                                  with_Response => Responses.the_target_ground_Response'Access,
                                   to_Event_Kind => lace.Event.utility.to_Kind (target_ground_Event'Tag));
 
       lace.Event.utility.connect (the_Observer  => the_World.local_Observer,
                                   to_Subject    => the_Client.as_Subject,
-                                  with_Response => the_target_sprite_Response'Access,
+                                  with_Response => Responses.the_target_sprite_Response'Access,
                                   to_Event_Kind => lace.Event.utility.to_Kind (target_sprite_Event'Tag));
    end register;
 
@@ -373,15 +197,18 @@ is
 
       lace.Event.utility.disconnect (the_Observer  => the_World.local_Observer,
                                      from_Subject  => client_Info.as_Subject,
-                                     for_Response  => the_pc_move_Response'Access,
+                                     for_Response  => Responses.the_pc_move_Response'Access,
                                      to_Event_Kind => lace.Event.utility.to_Kind (pc_move_Event'Tag),
                                      subject_Name  => to_String (client_Info.Name));
 
       lace.Event.utility.disconnect (the_Observer  => the_World.local_Observer,
                                      from_Subject  => client_Info.as_Subject,
-                                     for_Response  => the_pc_pace_Response'Access,
+                                     for_Response  => Responses.the_pc_pace_Response'Access,
                                      to_Event_Kind => lace.Event.utility.to_Kind (pc_pace_Event'Tag),
                                      subject_Name  => to_String (client_Info.Name));
+
+   -- TODO: disconnect all repsonses.
+
    end deregister;
 
 
@@ -536,6 +363,8 @@ is
       the_one_Tree : gel.Sprite.view;
 
    begin
+      arcana.Server.Responses.World_is (the_World'Access);
+
       the_World.Gravity_is ([0.0, 0.0, 0.0]);
 
       -- The One Tree.
@@ -561,7 +390,7 @@ is
                                           Friction =>  0.0,
                                           Radius   =>  0.5,
                                           Texture  => openGL.to_Asset ("assets/hound-1.png"));
-      Boo.user_Data_is (new sprite_Data);
+      Boo.user_Data_is (new local.sprite_Data);
       the_World.add    (Boo);
 
 
@@ -617,7 +446,7 @@ is
                declare
                   use type gel.Sprite.view;
 
-                  the_sprite_Data : sprite_Data renames sprite_Data (Each.user_Data.all);
+                  the_sprite_Data : local.sprite_Data renames local.sprite_Data (Each.user_Data.all);
 
                   pace_Multiplier : constant array (Pace_t) of Real := [Halt => 0.0,
                                                                         Walk => 0.5,
@@ -643,7 +472,7 @@ is
                   --     log (the_sprite_Data.is_Approaching'Image);
                   --  end if;
 
-                  if the_sprite_Data.target_Site /= null_Site
+                  if the_sprite_Data.target_Site /= local.null_Site
                   then
                      declare
                         use gel.linear_Algebra,
@@ -661,7 +490,7 @@ is
                                           [0.0, 0.0, 0.0],
                                           Tolerance => 0.1)
                         then     -- Has reached the targeted site.
-                           the_sprite_Data.target_Site    := null_Site;
+                           the_sprite_Data.target_Site    := local.null_Site;
                            the_sprite_Data.is_Approaching := False;
 
                         else     -- Still moving towards the target site.
@@ -701,7 +530,7 @@ is
 
 
          declare
-            boo_Info :          sprite_Data       renames sprite_Data (Boo.user_Data.all);
+            boo_Info :          local.sprite_Data renames local.sprite_Data (Boo.user_Data.all);
             Now      : constant ada.Calendar.TIme :=      ada.Calendar.Clock;
          begin
             if Now > next_Boo_move_Time

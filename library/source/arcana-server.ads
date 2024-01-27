@@ -7,6 +7,7 @@ private
 with
      lace.Observer,
      lace.Subject,
+
      ada.Strings.unbounded;
 
 
@@ -102,7 +103,6 @@ is
 private
 
    use ada.Strings.unbounded;
-
 
    -----------
    --- Clients
