@@ -3,6 +3,7 @@ with
      arcana.Server.Terrain,
      arcana.Server.all_Clients,
      arcana.Server.Responses,
+     arcana.Server.Network,
 --  arcana.Character,
 
      gel.World.server,
@@ -231,55 +232,55 @@ is
 
 
 
-   task check_Client_lives
-   is
-      entry halt;
-   end check_Client_lives;
-
-
-   task body check_Client_lives
-   is
-      use ada.Text_IO;
-      Done : Boolean := False;
-   begin
-      loop
-         select
-            accept halt
-            do
-               Done := True;
-            end halt;
-         or
-            delay 15.0;
-         end select;
-
-         exit when Done;
-
-         declare
-            all_Info : constant client_Info_array := all_Clients.Info;
-         begin
-            for Each of all_Info
-            loop
-               begin
-                  Each.Client.ping;
-               exception
-                  when system.RPC.communication_Error
-                     | storage_Error =>
-
-                     log (+Each.Name & " has died.");
-                     deregister (Each.Client);
-               end;
-            end loop;
-
-         end;
-      end loop;
-
-   exception
-      when E : others =>
-         new_Line;
-         put_Line ("Error in check_Client_lives task.");
-         new_Line;
-         put_Line (ada.Exceptions.exception_Information (E));
-   end check_Client_lives;
+   --  task check_Client_lives
+   --  is
+   --     entry halt;
+   --  end check_Client_lives;
+   --
+   --
+   --  task body check_Client_lives
+   --  is
+   --     use ada.Text_IO;
+   --     Done : Boolean := False;
+   --  begin
+   --     loop
+   --        select
+   --           accept halt
+   --           do
+   --              Done := True;
+   --           end halt;
+   --        or
+   --           delay 15.0;
+   --        end select;
+   --
+   --        exit when Done;
+   --
+   --        declare
+   --           all_Info : constant client_Info_array := all_Clients.Info;
+   --        begin
+   --           for Each of all_Info
+   --           loop
+   --              begin
+   --                 Each.Client.ping;
+   --              exception
+   --                 when system.RPC.communication_Error
+   --                    | storage_Error =>
+   --
+   --                    log (+Each.Name & " has died.");
+   --                    deregister (Each.Client);
+   --              end;
+   --           end loop;
+   --
+   --        end;
+   --     end loop;
+   --
+   --  exception
+   --     when E : others =>
+   --        new_Line;
+   --        put_Line ("Error in check_Client_lives task.");
+   --        new_Line;
+   --        put_Line (ada.Exceptions.exception_Information (E));
+   --  end check_Client_lives;
 
 
 
@@ -597,7 +598,7 @@ is
          end;
       end loop;
 
-      check_Client_lives.halt;
+      Network.check_Client_lives.halt;
    end close;
 
 
