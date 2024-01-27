@@ -86,7 +86,7 @@ is
                                                         Name     => "Tree ~" & Counter'Image,
                                                         Site     => [gel.Math.Real (Col) - half_Width  + random_Real (Lower => -0.25, Upper => 0.25),
                                                                      gel.Math.Real (Row) - half_Height + random_Real (Lower => -0.25, Upper => 0.25),
-                                                                     0.0                               + random_Real (Lower => -0.01 - 0.01, Upper => 0.01 - 0.01)],     -- Prevent openGL from flipping visuals due to being all at same 'Z' position.
+                                                                     0.1                               + random_Real (Lower => -0.01 - 0.01, Upper => 0.01 - 0.01)],     -- Prevent openGL from flipping visuals due to being all at same 'Z' position.
                                                         Mass     => 0.0,
                                                         Bounce   => 1.0,
                                                         Friction => 0.0,
