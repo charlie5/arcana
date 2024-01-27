@@ -28,6 +28,10 @@ pragma Unreferenced (gel.Window.setup);
 
 package body arcana.Client.local
 is
+
+   procedure occlude_hidden_dynamic_Sprites (Self : in out Item);
+
+
    --------
    -- Forge
    --
@@ -348,81 +352,12 @@ is
          end;
 
 
-         --- Occlude any hidden sprites.
-         --
-         if    Self.pc_Sprite    /= null
-           and evolve_Count mod 4 = 0        -- Only need to do occlusion check a few times per second.
+         if Self.pc_Sprite /= null
          then
-            for Angle in 0 .. 359
-            loop
-               declare
-                  use gel.World,
-                      gel.Geometry_2D;
-
-                  the_Angle : constant Radians       := to_Radians (Degrees (Angle));
-                  ray_End   : constant Vector_2      := to_Site    ((Angle  => the_Angle,
-                                                                     Extent => 50.0));
-
-                  Collision : constant ray_Collision := Self.client_World.cast_Ray (From => Self.pc_Sprite.Site,
-                                                                                    To   => Vector_3 (ray_End & 0.0));
-               begin
-                  --  log ("ray_End => " & ray_End'Image);
-
-                  if Collision.near_Sprite /= null
-                  then
-                     declare
-                        the_Sprite      : gel.Sprite.view renames Collision.near_Sprite;
-                        the_sprite_Info : sprite_Info     renames sprite_Info (the_Sprite.user_Data.all);
-                     begin
-                        --  log (the_sprite_Info'Image);
-
-                        if the_Sprite.is_Static
-                        then
-                           the_sprite_Info.occlude_Countdown := 60;
-                        else
-                           the_sprite_Info.occlude_Countdown :=  6;
-                        end if;
-                     end;
-                  end if;
-
-               end;
-            end loop;
-
-
-            for Each of my_Client.client_World.all_Sprites.fetch
-            loop
-               if    Each /= my_Client.pc_Sprite
-                 and Each /= my_Client.target_Marker
-               then
-                  declare
-                     use openGL.texture_Set;
-
-                     the_Sprite      : gel.Sprite.view renames Each;
-                     the_sprite_Info : sprite_Info     renames sprite_Info (the_Sprite.user_Data.all);
-                  begin
-                     if the_sprite_Info.occlude_Countdown > 0
-                     then
-                        Each.is_Visible (Now => True);
-                        the_sprite_Info.fade_Level := 0.0;
-                     else
-                        the_sprite_Info.fade_Level := fade_Level'Min (the_sprite_Info.fade_Level + 0.04,
-                                                                      1.0);
-                        if the_sprite_Info.fade_Level >= 0.99
-                        then
-                           Each.is_Visible (Now => False);
-                        end if;
-                     end if;
-
-                     the_Sprite.Visual.Model.Fade_is (Which => 1,
-                                                      Now   => the_sprite_Info.fade_Level);
-                     if not the_Sprite.is_Static
-                     then
-                        the_sprite_Info.occlude_Countdown := the_sprite_Info.occlude_Countdown - 1;
-                     end if;
-                  end;
-               end if;
-            end loop;
-
+            if evolve_Count mod 4 = 0        -- Only need to do occlusion check a few times per second.
+            then
+               Self.occlude_hidden_dynamic_Sprites;
+            end if;
          end if;
 
 
@@ -488,6 +423,7 @@ is
 
          --- Delay until next_evolve_Time;
          --
+         delay until next_evolve_Time;
          next_evolve_Time := next_evolve_Time + 1.0 / 60.0;
       end loop;
 
@@ -520,6 +456,82 @@ is
          raise;
    end run;
 
+
+
+
+   procedure occlude_hidden_dynamic_Sprites (Self : in out Item)
+   is
+      use type gel.Sprite.view;
+
+   begin
+      for Angle in 0 .. 359
+      loop
+         declare
+            use gel.World,
+                gel.Geometry_2D,
+                gel.Math;
+
+            the_Angle : constant Radians       := to_Radians (Degrees (Angle));
+            ray_End   : constant Vector_2      := to_Site    ((Angle  => the_Angle,
+                                                               Extent => 50.0));
+
+            Collision : constant ray_Collision := Self.client_World.cast_Ray (From => Self.pc_Sprite.Site,
+                                                                              To   => Vector_3 (ray_End & 0.0));
+         begin
+            if Collision.near_Sprite /= null
+            then
+               declare
+                  the_Sprite      : gel.Sprite.view renames Collision.near_Sprite;
+                  the_sprite_Info : sprite_Info     renames sprite_Info (the_Sprite.user_Data.all);
+               begin
+                  if the_Sprite.is_Static
+                  then
+                     the_sprite_Info.occlude_Countdown := 60;
+                  else
+                     the_sprite_Info.occlude_Countdown :=  6;
+                  end if;
+               end;
+            end if;
+
+         end;
+      end loop;
+
+
+      for Each of my_Client.client_World.all_Sprites.fetch
+      loop
+         if    Each /= my_Client.pc_Sprite
+           and Each /= my_Client.target_Marker
+         then
+            declare
+               use openGL.texture_Set;
+
+               the_Sprite      : gel.Sprite.view renames Each;
+               the_sprite_Info : sprite_Info     renames sprite_Info (the_Sprite.user_Data.all);
+            begin
+               if the_sprite_Info.occlude_Countdown > 0
+               then
+                  Each.is_Visible (Now => True);
+                  the_sprite_Info.fade_Level := 0.0;
+               else
+                  the_sprite_Info.fade_Level := fade_Level'Min (the_sprite_Info.fade_Level + 0.04,
+                                                                1.0);
+                  if the_sprite_Info.fade_Level >= 0.99
+                  then
+                     Each.is_Visible (Now => False);
+                  end if;
+               end if;
+
+               the_Sprite.Visual.Model.Fade_is (Which => 1,
+                                                Now   => the_sprite_Info.fade_Level);
+               if not the_Sprite.is_Static
+               then
+                  the_sprite_Info.occlude_Countdown := the_sprite_Info.occlude_Countdown - 1;
+               end if;
+            end;
+         end if;
+      end loop;
+
+   end occlude_hidden_dynamic_Sprites;
 
 
 
