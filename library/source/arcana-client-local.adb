@@ -319,190 +319,181 @@ is
    procedure run (Self : in out arcana.Client.local.item)
    is
       use gel.Applet.client_world,
-          gel.Math;
-          --  ada.Text_IO;
+          gel.Math,
+          ada.Calendar;
 
       use type gel.Sprite.view,
                gel.sprite_Id;
+
+      next_evolve_Time   : ada.Calendar.Time := ada.Calendar.Clock;
+      next_evolve_Report : ada.Calendar.Time := next_evolve_Time;
+      evolve_Count       : Natural           := 0;
+
    begin
-      -------------
-      --- Main Loop
-      --
-      declare
-         use ada.Calendar;
+      while Self.Applet.is_open
+      loop
+         --- Report evolve rate.
+         --
+         evolve_Count := evolve_Count + 1;
 
-         next_evolve_Time   : ada.Calendar.Time := ada.Calendar.Clock;
-         next_evolve_Report : ada.Calendar.Time := next_evolve_Time;
-         evolve_Count       : Natural           := 0;
-
-      begin
-         while Self.Applet.is_open
-         loop
-            --- Report evolves rate.
-            --
-
-            evolve_Count := evolve_Count + 1;
-
-            declare
-               Now : constant ada.Calendar.TIme := ada.Calendar.Clock;
-            begin
-               if Now > next_evolve_Report
-               then
-                  log ("                                               Client ~ Evolves per second:" & evolve_Count'Image);
-                  next_evolve_Report := next_evolve_Report + 1.0;
-                  evolve_Count       := 0;
-               end if;
-            end;
-
-
-            --- Occlude any hidden sprites.
-            --
-
-            if Self.pc_Sprite /= null
+         declare
+            Now : constant ada.Calendar.TIme := ada.Calendar.Clock;
+         begin
+            if Now > next_evolve_Report
             then
-               for Angle in 0 .. 359
-               loop
+               log ("                                               Client ~ Evolves per second:" & evolve_Count'Image);
+               next_evolve_Report := next_evolve_Report + 1.0;
+               evolve_Count       := 0;
+            end if;
+         end;
+
+
+         --- Occlude any hidden sprites.
+         --
+         if    Self.pc_Sprite    /= null
+           and evolve_Count mod 4 = 0        -- Only need to do occlusion check a few times per second.
+         then
+            for Angle in 0 .. 359
+            loop
+               declare
+                  use gel.World,
+                      gel.Geometry_2D;
+
+                  the_Angle : constant Radians       := to_Radians (Degrees (Angle));
+                  ray_End   : constant Vector_2      := to_Site    ((Angle  => the_Angle,
+                                                                     Extent => 50.0));
+
+                  Collision : constant ray_Collision := Self.client_World.cast_Ray (From => Self.pc_Sprite.Site,
+                                                                                    To   => Vector_3 (ray_End & 0.0));
+               begin
+                  --  log ("ray_End => " & ray_End'Image);
+
+                  if Collision.near_Sprite /= null
+                  then
+                     declare
+                        the_Sprite      : gel.Sprite.view renames Collision.near_Sprite;
+                        the_sprite_Info : sprite_Info     renames sprite_Info (the_Sprite.user_Data.all);
+                     begin
+                        --  log (the_sprite_Info'Image);
+
+                        if the_Sprite.is_Static
+                        then
+                           the_sprite_Info.occlude_Countdown := 60;
+                        else
+                           the_sprite_Info.occlude_Countdown :=  6;
+                        end if;
+                     end;
+                  end if;
+
+               end;
+            end loop;
+
+
+            for Each of my_Client.client_World.all_Sprites.fetch
+            loop
+               if    Each /= my_Client.pc_Sprite
+                 and Each /= my_Client.target_Marker
+               then
                   declare
-                     use gel.World,
-                         gel.Geometry_2D;
+                     use openGL.texture_Set;
 
-                     the_Angle : constant Radians       := to_Radians (Degrees (Angle));
-                     ray_End   : constant Vector_2      := to_Site    ((Angle  => the_Angle,
-                                                                        Extent => 50.0));
-
-                     Collision : constant ray_Collision := Self.client_World.cast_Ray (From => Self.pc_Sprite.Site,
-                                                                                       To   => Vector_3 (ray_End & 0.0));
+                     the_Sprite      : gel.Sprite.view renames Each;
+                     the_sprite_Info : sprite_Info     renames sprite_Info (the_Sprite.user_Data.all);
                   begin
-                     --  log ("ray_End => " & ray_End'Image);
-
-                     if Collision.near_Sprite /= null
+                     if the_sprite_Info.occlude_Countdown > 0
                      then
-                        declare
-                           the_Sprite      : gel.Sprite.view renames Collision.near_Sprite;
-                           the_sprite_Info : sprite_Info     renames sprite_Info (the_Sprite.user_Data.all);
-                        begin
-                           --  log (the_sprite_Info'Image);
-
-                           if the_Sprite.is_Static
-                           then
-                              the_sprite_Info.occlude_Countdown := 60;
-                           else
-                              the_sprite_Info.occlude_Countdown :=  6;
-                           end if;
-                        end;
+                        Each.is_Visible (Now => True);
+                        the_sprite_Info.fade_Level := 0.0;
+                     else
+                        the_sprite_Info.fade_Level := fade_Level'Min (the_sprite_Info.fade_Level + 0.04,
+                                                                      1.0);
+                        if the_sprite_Info.fade_Level >= 0.99
+                        then
+                           Each.is_Visible (Now => False);
+                        end if;
                      end if;
 
+                     the_Sprite.Visual.Model.Fade_is (Which => 1,
+                                                      Now   => the_sprite_Info.fade_Level);
+                     if not the_Sprite.is_Static
+                     then
+                        the_sprite_Info.occlude_Countdown := the_sprite_Info.occlude_Countdown - 1;
+                     end if;
                   end;
-               end loop;
-
-
-               --- Sprite occlusion.
-               --
-
-               if evolve_Count mod 4 = 0     -- Only need to do occlusion check a few times per second.
-               then
-                  for Each of my_Client.client_World.all_Sprites.fetch
-                  loop
-                     if    Each /= my_Client.pc_Sprite
-                       and Each /= my_Client.target_Marker
-                     then
-                        declare
-                           use openGL.texture_Set;
-
-                           the_Sprite      : gel.Sprite.view renames Each;
-                           the_sprite_Info : sprite_Info     renames sprite_Info (the_Sprite.user_Data.all);
-                        begin
-                           if the_sprite_Info.occlude_Countdown > 0
-                           then
-                              Each.is_Visible (Now => True);
-                              the_sprite_Info.fade_Level := 0.0;
-                           else
-                              the_sprite_Info.fade_Level := fade_Level'Min (the_sprite_Info.fade_Level + 0.04,
-                                                                            1.0);
-                              if the_sprite_Info.fade_Level >= 0.99
-                              then
-                                 Each.is_Visible (Now => False);
-                              end if;
-                           end if;
-
-                           the_Sprite.Visual.Model.Fade_is (Which => 1,
-                                                            Now   => the_sprite_Info.fade_Level);
-                           the_sprite_Info.occlude_Countdown := the_sprite_Info.occlude_Countdown - 1;
-                        end;
-                     end if;
-                  end loop;
                end if;
+            end loop;
 
-            end if;
+         end if;
 
 
-            --- Evolve the world, handle new events and update the screen.
-            --
+         --- Evolve the world, handle new events and update the screen.
+         --
+         Self.Applet.freshen;
 
-            Self.Applet.freshen;
+         if    Self.pc_Sprite     = null
+           and Self.pc_sprite_Id /= gel.null_sprite_Id
+         then
+            Self.pc_Sprite := Self.client_World.fetch_Sprite (Self.pc_sprite_Id);
+            Self.pc_Sprite.is_Visible (True);
 
-            if    Self.pc_Sprite     = null
-              and Self.pc_sprite_Id /= gel.null_sprite_Id
+            if Self.pc_Sprite = null
             then
-               Self.pc_Sprite := Self.client_World.fetch_Sprite (Self.pc_sprite_Id);
-
-               if Self.pc_Sprite = null
-               then
-                  log ("Warning: Unable to fetch PC sprite" & Self.pc_sprite_Id'Image & ".");
-               else
-                  Self.pc_Sprite.user_Data_is (new sprite_Info);
-               end if;
+               log ("Warning: Unable to fetch PC sprite" & Self.pc_sprite_Id'Image & ".");
+            else
+               Self.pc_Sprite.user_Data_is (new sprite_Info);
             end if;
+         end if;
 
 
-            --- Move the camera to follow the players sprite.
-            --
-            if Self.pc_Sprite /= null
-            then
-               Self.Applet.Camera.Site_is (  Self.pc_Sprite.Site
-                                           + [0.0, 0.0, Self.Applet.Camera.Site (3)]);
-            end if;
+         --- Move the camera to follow the players sprite.
+         --
+         if Self.pc_Sprite /= null
+         then
+            Self.Applet.Camera.Site_is (  Self.pc_Sprite.Site
+                                        + [0.0, 0.0, Self.Applet.Camera.Site (3)]);
+         end if;
 
 
-            --- Move the target marker to follow the targeted sprite.
-            --
-            if Self.Target /= null
-            then
-               Self.target_Marker.Site_is (Self.Target.Site);
-            end if;
+         --- Move the target marker to follow the targeted sprite.
+         --
+         if Self.Target /= null
+         then
+            Self.target_Marker.Site_is (Self.Target.Site);
+         end if;
 
 
-            --- Display any new chat messages.
-            --
-            declare
-               use lace.Text;
+         --- Display any new chat messages.
+         --
+         declare
+            use lace.Text;
 
-               Messages : lace.Text.items_256 (1 .. 50);
-               Count    : Natural;
-            begin
-               chat_Messages.fetch (Messages, Count);
+            Messages : lace.Text.items_256 (1 .. 50);
+            Count    : Natural;
+         begin
+            chat_Messages.fetch (Messages, Count);
 
-               for i in 1 .. Count
-               loop
-                  UI.add_chat_Line (Self, +Messages (i));
-               end loop;
-            end;
-
-
-            --- Loop exit.
-            --
-            exit when Self.Server_has_shutdown
-              or      Self.Server_is_dead
-              or not  Self.Applet.is_open;
+            for i in 1 .. Count
+            loop
+               UI.add_chat_Line (Self, +Messages (i));
+            end loop;
+         end;
 
 
-            ---  Delay until next_evolve_Time;
-            --
-            next_evolve_Time := next_evolve_Time + 1.0 / 60.0;
-         end loop;
-      end;
+         --- Loop exit.
+         --
+         exit when Self.Server_has_shutdown
+           or      Self.Server_is_dead
+           or not  Self.Applet.is_open;
 
 
+         --- Delay until next_evolve_Time;
+         --
+         next_evolve_Time := next_evolve_Time + 1.0 / 60.0;
+      end loop;
+
+
+      --- Shutdown
+      --
       arcana.Server.World.deregister (Self.Applet.client_World.all'Access);
 
       if    not Self.Server_has_shutdown

@@ -156,6 +156,7 @@ is
    procedure respond (Self : in out Sprite_added_Response;  to_Event : in lace.Event.Item'Class)
    is
       use lace.Event.utility;
+      use type gel.Sprite.view;
 
       the_Event    : constant gel.Remote.World.sprite_added_Event := gel.Remote.World.sprite_added_Event (to_Event);
       the_Sprite   : constant gel.Sprite.view                     := my_Client.Applet.World.fetch_Sprite (the_Event.Sprite);
@@ -164,6 +165,11 @@ is
       --  log ("'" & the_Sprite.Name & "' added.");
 
       the_Sprite.user_Data_is (new sprite_Info);
+
+      if the_Sprite /= my_Client.target_Marker
+      then
+         the_Sprite.is_Visible (False);
+      end if;
 
       --- Add a 'clicked' response to each newly added sprite.
       --
