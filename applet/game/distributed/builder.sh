@@ -2,6 +2,14 @@
 
 set -e
 
+
+if [ -z "${LACE}" ]; then
+   echo The LACE environment variable has not been set.
+   echo It should point to the root folder of the Lace project.
+   exit
+fi
+
+
 export OS=Linux
 
 mkdir -p build
