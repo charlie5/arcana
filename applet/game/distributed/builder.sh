@@ -22,8 +22,12 @@ export Build_Mode=fast
 export Lace_Build_Mode=fast
 
 set +e
-#po_gnatdist -P launch_arcana.gpr arcana.dsa -gnat2022 -cargs -g -largs -g
-po_gnatdist -P launch_arcana.gpr arcana.dsa -cargs -g -largs -g
+po_gnatdist -P launch_arcana.gpr arcana.dsa                       \
+            -cargs                                                \
+            -I$LACE/3-mid/physics/implement/box2d/contrib/include \
+            -g                                                    \
+            -largs                                                \
+            -g
 set -e
 
 
@@ -33,7 +37,11 @@ echo __________________________________________________ PHASE 2 ________________
 cp dsa/x86_64-unknown-linux-gnu/obj/*.o   dsa/x86_64-unknown-linux-gnu/partitions/arcana/server_partition
 cp dsa/x86_64-unknown-linux-gnu/obj/*.o   dsa/x86_64-unknown-linux-gnu/partitions/arcana/client_partition
 
-po_gnatdist  -Xrestrictions=xgc -Xopengl_platform=egl -Xopengl_profile=lean -P launch_arcana.gpr  arcana.dsa 
+po_gnatdist -P launch_arcana.gpr  \
+            -Xrestrictions=xgc    \
+            -Xopengl_platform=egl \
+            -Xopengl_profile=lean \
+            arcana.dsa 
 
 
 echo Done.
