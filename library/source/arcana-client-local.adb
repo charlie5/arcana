@@ -412,7 +412,7 @@ is
            or not  Self.Applet.is_open;
 
 
-         --- Delay until next_evolve_Time;
+         --- Delay until next evolve time.
          --
          delay until next_evolve_Time;
          next_evolve_Time := next_evolve_Time + 1.0 / 60.0;
@@ -504,7 +504,7 @@ is
                   Each.is_Visible (Now => True);
                   the_sprite_Info.fade_Level := 0.0;
                else
-                  the_sprite_Info.fade_Level := fade_Level'Min (the_sprite_Info.fade_Level + 0.04,
+                  the_sprite_Info.fade_Level := fade_Level'Min (the_sprite_Info.fade_Level + 0.1,
                                                                 1.0);
                   if the_sprite_Info.fade_Level >= 0.99
                   then
