@@ -57,6 +57,7 @@ is
    procedure open  (Self : in out arcana.Client.local.item);
    procedure run   (Self : in out arcana.Client.local.item);
 
+   procedure Server_is_dead (Self : in out Item);
 
    overriding
    procedure Server_has_shutdown (Self : in out Item);

@@ -1,6 +1,7 @@
 with
      arcana.Client.local.Events,
      arcana.Client.local.UI,
+     arcana.Client.Network,
      arcana.Server,
 
      lace.Observer,
@@ -19,7 +20,6 @@ with
 
      system.RPC,
 
-     ada.Tags,
      ada.Calendar,
      ada.Exceptions;
 
@@ -162,6 +162,14 @@ is
    -- Operations
    --
 
+   procedure Server_is_dead (Self : in out Item)
+   is
+   begin
+      Self.Server_is_dead := True;
+   end Server_is_dead;
+
+
+
    overriding
    procedure Server_has_shutdown (Self : in out Item)
    is
@@ -171,55 +179,6 @@ is
 
       Self.Server_has_shutdown := True;
    end Server_has_shutdown;
-
-
-
-   task check_Server_lives
-   is
-      entry start (Self : in arcana.Client.local.view);
-      entry halt;
-   end check_Server_lives;
-
-
-   task body check_Server_lives
-   is
-      use ada.Text_IO;
-      Done : Boolean := False;
-      Self : arcana.Client.local.view;
-   begin
-      loop
-         select
-            accept start (Self : in arcana.Client.local.view)
-            do
-               check_Server_lives.Self := Self;
-            end start;
-         or
-            accept halt
-            do
-               Done := True;
-            end halt;
-         or
-            delay 15.0;
-         end select;
-
-         exit when Done;
-
-         begin
-            arcana.Server.ping;
-         exception
-            when system.RPC.communication_Error =>
-               put_Line ("The Server has died. Press <Enter> to exit.");
-               Self.Server_is_dead := True;
-         end;
-      end loop;
-
-   exception
-      when E : others =>
-         new_Line;
-         put_Line ("Error in 'check_Server_lives' task.");
-         new_Line;
-         put_Line (ada.exceptions.exception_Information (E));
-   end check_Server_lives;
 
 
 
@@ -299,7 +258,7 @@ is
       exception
          when arcana.Server.Name_already_used =>
             log (+Self.Name & " is already in use.");
-            check_Server_lives.halt;
+            arcana.Client.Network.check_Server_lives.halt;
             free (Self.Applet);
 
          when E : others =>
@@ -310,7 +269,7 @@ is
 
       lace.Event.utility.use_text_Logger ("events");
 
-      check_Server_lives.start (Self'unchecked_Access);
+      arcana.Client.Network.check_Server_lives.start (Self'unchecked_Access);
 
       Self.Applet.client_World.Gravity_is  ([0.0, 0.0, 0.0]);
       Self.Applet.client_World.is_a_Mirror (of_World      => arcana.Server.World);
@@ -438,13 +397,13 @@ is
          end;
       end if;
 
-      check_Server_lives.halt;
+      arcana.Client.Network.check_Server_lives.halt;
       free (Self.Applet);
       lace.Event.utility.close;
 
    exception
       when others =>
-         check_Server_lives.halt;
+         arcana.Client.Network.check_Server_lives.halt;
          free (Self.Applet);
          lace.Event.utility.close;
 
