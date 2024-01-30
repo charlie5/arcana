@@ -13,6 +13,8 @@ source ~/.gpr_paths.sh
 
 ## Update the appimage.
 #
+echo
+echo
 ./update_appimage.sh
 
 
@@ -22,7 +24,7 @@ rm -fr client_tarball
 mkdir  client_tarball
 
 cp  --recursive --dereference ../fused/assets       client_tarball
-cp  --recursive               ../fused/glade        client_tarball
+cp  --recursive --dereference ../fused/glade        client_tarball
 
 cp  bin/client_partition                            client_tarball
 cp  appimage/client_partition-x86_64.AppImage       client_tarball
