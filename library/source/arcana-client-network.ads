@@ -2,6 +2,7 @@ with
      arcana.Client.local;
 
 
+private
 package arcana.Client.Network
 is
 
