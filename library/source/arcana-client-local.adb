@@ -2,11 +2,12 @@ with
      arcana.Client.local.Events,
      arcana.Client.local.UI,
      arcana.Client.Network,
+     arcana.Client.Chat,
      arcana.Server,
 
      lace.Observer,
      lace.Event.utility,
-     lace.Text.forge,
+     lace.Text,
 
      gel.Forge,
      gel.Window.setup,
@@ -190,53 +191,11 @@ is
 
 
 
-
-   -----------------
-   --- Chat messages
-   --
-
-   protected chat_Messages
-   is
-      procedure add   (Message  : in String);
-
-      procedure fetch (the_Messages : out lace.Text.items_256;
-                       the_Count    : out Natural);
-
-   private
-      Messages : lace.Text.items_256 (1 .. 50);
-      Count    : Natural := 0;
-   end chat_Messages;
-
-
-   protected body chat_Messages
-   is
-      procedure add (Message : in String)
-      is
-         use lace.Text.forge;
-      begin
-         Count            := Count + 1;
-         Messages (Count) := to_Text_256 (Message);
-      end add;
-
-
-      procedure fetch (the_Messages : out lace.Text.items_256;
-                       the_Count    : out Natural)
-      is
-      begin
-         the_Messages (1 .. Count) := Messages (1 .. Count);
-         the_Count                 := Count;
-         Count                     := 0;
-      end fetch;
-
-   end chat_Messages;
-
-
-
    overriding
    procedure receive_Chat (Self : in Item;   Message : in String)
    is
    begin
-      chat_Messages.add (Message);
+      Chat.chat_Messages.add (Message);
    end receive_Chat;
 
 
@@ -258,7 +217,7 @@ is
       exception
          when arcana.Server.Name_already_used =>
             log (+Self.Name & " is already in use.");
-            arcana.Client.Network.check_Server_lives.halt;
+            Network.check_Server_lives.halt;
             free (Self.Applet);
 
          when E : others =>
@@ -269,7 +228,7 @@ is
 
       lace.Event.utility.use_text_Logger ("events");
 
-      arcana.Client.Network.check_Server_lives.start (Self'unchecked_Access);
+      Network.check_Server_lives.start (Self'unchecked_Access);
 
       Self.Applet.client_World.Gravity_is  ([0.0, 0.0, 0.0]);
       Self.Applet.client_World.is_a_Mirror (of_World      => arcana.Server.World);
@@ -359,7 +318,7 @@ is
             Messages : lace.Text.items_256 (1 .. 50);
             Count    : Natural;
          begin
-            chat_Messages.fetch (Messages, Count);
+            Chat.chat_Messages.fetch (Messages, Count);
 
             for i in 1 .. Count
             loop
@@ -397,13 +356,13 @@ is
          end;
       end if;
 
-      arcana.Client.Network.check_Server_lives.halt;
+      Network.check_Server_lives.halt;
       free (Self.Applet);
       lace.Event.utility.close;
 
    exception
       when others =>
-         arcana.Client.Network.check_Server_lives.halt;
+         Network.check_Server_lives.halt;
          free (Self.Applet);
          lace.Event.utility.close;
 
