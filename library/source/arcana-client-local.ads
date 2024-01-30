@@ -128,6 +128,8 @@ private
       end record;
 
 
+   target_marker_Height : constant := 0.2;
+
 
    ---------------
    --- Sprite Info

@@ -203,6 +203,7 @@ is
    procedure respond (Self : in out Space_clicked_Response;  to_Event : in lace.Event.item'Class)
    is
       use arcana.Server;
+      use type gel.Math.Vector_3;
 
       the_Event : constant gel.Events.space_click_down_Event := gel.Events.space_click_down_Event (to_Event);
    begin
@@ -210,7 +211,7 @@ is
 
       my_Client.target_Name.set_Label ("Ground");
 
-      my_Client.target_Marker.Site_is (the_Event.world_Site);
+      my_Client.target_Marker.Site_is (the_Event.world_Site + [0.0, 0.0, target_marker_Height]);
       my_Client.Target := null;
 
       my_Client.emit (target_ground_Event' (sprite_Id   => my_Client.pc_sprite_Id,

@@ -39,6 +39,7 @@ is
    function to_Client (Name : in String) return Item
    is
       use openGL;
+      use type gel.Math.Vector_3;
 
    begin
       return Self : Item
@@ -91,7 +92,7 @@ is
          --
          Self.target_Marker := gel.Forge.new_circle_Sprite (in_World    => Self.Applet.client_World.all'Access,
                                                             Name        => "target Marker",
-                                                            Site        => gel.math.Origin_3D,
+                                                            Site        => gel.math.Origin_3D + [0.0, 0.0, target_marker_Height],
                                                             Mass        => 0.0,
                                                             is_Tangible => False,
                                                             Radius      => 0.666,
@@ -387,7 +388,7 @@ is
          --
          if Self.Target /= null
          then
-            Self.target_Marker.Site_is (Self.Target.Site);
+            Self.target_Marker.Site_is (Self.Target.Site + [0.0, 0.0, target_marker_Height]);
          end if;
 
 
