@@ -1,6 +1,5 @@
 with
      Gel,
-     lace.Event,
      lace.Subject,
      lace.Observer;
 
@@ -26,27 +25,10 @@ is
    function  as_Observer (Self : access Item) return lace.Observer.view is abstract;
    function  as_Subject  (Self : access Item) return lace.Subject .view is abstract;
 
-
-   type Message (Length : Natural) is new lace.Event.item with
-      record
-         Text : String (1..Length);
-      end record;
-
-   unknown_Client : exception;
-
-
-
    procedure pc_sprite_Id_is (Self : in out Item;   Now : in gel.sprite_Id) is abstract;
    function  pc_sprite_Id    (Self : in     Item)     return gel.sprite_Id  is abstract;
 
    procedure receive_Chat    (Self : in     Item;   Message : in String)    is abstract;
-
-
-
-   type sprite_added_Event is new lace.Event.item with
-      record
-         null; -- Sprite : gel.sprite_Id;
-      end record;
 
 
 end arcana.Client;
