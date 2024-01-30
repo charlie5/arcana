@@ -26,8 +26,13 @@ mkdir --parents  dsa/x86_64-unknown-linux-gnu/obj
 cp /usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/adalib/a-sttebu.ali \
     dsa/x86_64-unknown-linux-gnu/obj
 
-export Build_Mode=fast
-export Lace_Build_Mode=fast
+
+#export Build_Mode=fast
+#export Lace_Build_Mode=fast
+
+export Build_Mode=debug
+export Lace_Build_Mode=debug
+
 
 set +e
 po_gnatdist -P launch_arcana.gpr arcana.dsa                       \
