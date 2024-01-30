@@ -192,16 +192,7 @@ is
    is
       use arcana.Server;
    begin
-      --  log ("on_approach_Button_clicked");
-
       my_Client.emit (pc_approach_Event' (sprite_Id => my_Client.pc_sprite_Id));
-
-      --  my_Client.Pace := Dash;
-      --  update_UI;
-      --
-      --  my_Client.emit (pc_pace_Event' (sprite_Id => my_Client.pc_sprite_Id,
-      --                                  Pace      => Dash));
-      --  my_Client.chat_Entry.grab_Focus;     -- Change focus so that left/right arrow keys do not affect pace.
    end on_approach_Button_clicked;
 
 
