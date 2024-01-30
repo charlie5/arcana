@@ -301,6 +301,9 @@ is
             check_Server_lives.halt;
             free (Self.Applet);
 
+         when E : others =>
+            log ("Unahndled exception in client:");
+            log (ada.Exceptions.exception_Information (E));
             return;
       end;
 
