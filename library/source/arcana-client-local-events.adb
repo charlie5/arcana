@@ -43,6 +43,7 @@ is
    is
       use arcana.Server,
           gel.Keyboard;
+      use type gel.Math.Vector_3;
 
       the_Event :          gel.Keyboard.key_press_Event renames gel.Keyboard.key_press_Event (to_Event);
       the_Key   : constant gel.keyboard.Key                  := the_Event.modified_Key.Key;
@@ -59,11 +60,16 @@ is
 
       case the_Key
       is
-         when Up     => my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => my_Client.pc_sprite_Id,  Direction => Forward,   On => True));
-         when Down   => my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => my_Client.pc_sprite_Id,  Direction => Backward,  On => True));
-         when Right  => my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => my_Client.pc_sprite_Id,  Direction => Right,     On => True));
-         when Left   => my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => my_Client.pc_sprite_Id,  Direction => Left,      On => True));
-         when others => null;
+         when Up       => my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => my_Client.pc_sprite_Id,  Direction => Forward,   On => True));
+         when Down     => my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => my_Client.pc_sprite_Id,  Direction => Backward,  On => True));
+         when Right    => my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => my_Client.pc_sprite_Id,  Direction => Right,     On => True));
+         when Left     => my_Client.emit (arcana.Server.pc_move_Event' (sprite_Id => my_Client.pc_sprite_Id,  Direction => Left,      On => True));
+
+         when PageUp   => my_Client.Applet.Camera.Site_is (  my_Client.Applet.Camera.Site
+                                                           + [0.0, 0.0, 0.5]);
+         when PageDown => my_Client.Applet.Camera.Site_is (  my_Client.Applet.Camera.Site
+                                                           - [0.0, 0.0, 0.5]);
+         when others   => null;
       end case;
 
       case the_Key
