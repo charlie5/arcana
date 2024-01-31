@@ -1,18 +1,21 @@
 with
-     "../../library/arcana",
+     "../../../library/arcana",
      "lace",
      "lace_shared";
 
 
-project Arcana_fused
+project launch_Arcana
 is
    for Create_Missing_Dirs use "True";
 
    for Object_Dir  use "build";
    for Exec_Dir    use ".";
-   for Main        use ("launch_arcana_fused.adb");
-   for Source_Dirs use (".",
-                        "../source");
+   for Source_Dirs use ("../source",
+                        "./source");
+
+   package Dsa is
+      for Configuration_File use "arcana.dsa";
+   end Dsa;
 
    package Builder  renames Lace_shared.Builder;
    package Compiler renames Lace_shared.Compiler;
@@ -20,6 +23,7 @@ is
 
    package Linker is
       for Default_Switches ("ada") use ("-g");
+--                                        "-static");
    end Linker;
 
-end Arcana_fused;
+end launch_Arcana;

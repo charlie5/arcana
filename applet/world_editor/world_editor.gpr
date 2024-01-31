@@ -1,0 +1,25 @@
+with
+     "../../library/arcana",
+     "lace",
+     "lace_shared";
+
+
+project world_Editor
+is
+   for Create_Missing_Dirs use "True";
+
+   for Object_Dir  use "build";
+   for Exec_Dir    use ".";
+   for Main        use ("launch_world_editor.adb");
+   for Source_Dirs use (".",
+                        "./source");
+
+   package Builder  renames Lace_shared.Builder;
+   package Compiler renames Lace_shared.Compiler;
+   package Binder   renames Lace_shared.Binder;
+
+   package Linker is
+      for Default_Switches ("ada") use ("-g");
+   end Linker;
+
+end world_Editor;
