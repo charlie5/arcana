@@ -33,8 +33,10 @@ cp  polyorb.conf                                    client_tarball
 tar  cvzf  client_tarball.tar.gz  client_tarball
 cp         client_tarball.tar.gz  /eden/forge/applet/tool/orthanc/applet/server/assets/arcana
 
-rsync  -av  client_tarball/*       test/wan_on_orth/client_1
-rsync  -av  bin/server_partition   test/wan_on_orth/registrar
+rsync  -av  --quiet  client_tarball/*       test/wan_on_orth/client_1
+rsync  -av  --quiet  bin/server_partition   test/wan_on_orth/server
+rsync  -av  --quiet  bin/server_partition   test/wan_on_orth/server
 
+cp  --recursive --dereference ../fused/assets test/wan_on_orth/server
 
 echo Done.
