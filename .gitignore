@@ -36,3 +36,4 @@ applet/game/distributed/test/lan/client_2/assets
 .clang-format
 
 launch_arcana_fused
+linuxdeploy-x86_64.AppImage
