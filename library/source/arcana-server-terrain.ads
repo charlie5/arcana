@@ -9,6 +9,7 @@ package arcana.Server.Terrain
 --
 is
 
+   procedure set_up_Ground   (in_World : gel.World.view);
    procedure set_up_Boulders (in_World : gel.World.view);
    procedure set_up_Trees    (in_World : gel.World.view);
 

@@ -412,36 +412,43 @@ is
 
       for Each of my_Client.client_World.all_Sprites.fetch
       loop
-         if    Each /= my_Client.pc_Sprite
-           and Each /= my_Client.target_Marker
-         then
-            declare
-               use openGL.texture_Set;
+         declare
+            is_Ground : Boolean := (         Each.Name'Length   >= 6
+                                    and then Each.Name (1 .. 6) = "Ground");
+         begin
+            if    Each      /= my_Client.pc_Sprite
+              and Each      /= my_Client.target_Marker
+              and not is_Ground
+            then
+               declare
+                  use openGL.texture_Set;
 
-               the_Sprite      : gel.Sprite.view renames Each;
-               the_sprite_Info : sprite_Info     renames sprite_Info (the_Sprite.user_Data.all);
-            begin
-               if the_sprite_Info.occlude_Countdown > 0
-               then
-                  Each.is_Visible (Now => True);
-                  the_sprite_Info.fade_Level := 0.0;
-               else
-                  the_sprite_Info.fade_Level := fade_Level'Min (the_sprite_Info.fade_Level + 0.1,
-                                                                1.0);
-                  if the_sprite_Info.fade_Level >= 0.99
+                  the_Sprite      : gel.Sprite.view renames Each;
+                  the_sprite_Info : sprite_Info     renames sprite_Info (the_Sprite.user_Data.all);
+               begin
+                  if the_sprite_Info.occlude_Countdown > 0
                   then
-                     Each.is_Visible (Now => False);
+                     Each.is_Visible (Now => True);
+                     the_sprite_Info.fade_Level := 0.0;
+                  else
+                     the_sprite_Info.fade_Level := fade_Level'Min (the_sprite_Info.fade_Level + 0.1,
+                                                                   1.0);
+                     if the_sprite_Info.fade_Level >= 0.99
+                     then
+                        Each.is_Visible (Now => False);
+                     end if;
                   end if;
-               end if;
 
-               the_Sprite.Visual.Model.Fade_is (Which => 1,
-                                                Now   => the_sprite_Info.fade_Level);
-               if not the_Sprite.is_Static
-               then
-                  the_sprite_Info.occlude_Countdown := the_sprite_Info.occlude_Countdown - 1;
-               end if;
-            end;
-         end if;
+                  the_Sprite.Visual.Model.Fade_is (Which => 1,
+                                                   Now   => the_sprite_Info.fade_Level);
+                  if not the_Sprite.is_Static
+                  then
+                     the_sprite_Info.occlude_Countdown := the_sprite_Info.occlude_Countdown - 1;
+                  end if;
+
+               end;
+            end if;
+         end;
       end loop;
 
    end occlude_hidden_dynamic_Sprites;

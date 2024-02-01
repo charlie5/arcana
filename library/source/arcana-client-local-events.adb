@@ -167,12 +167,13 @@ is
       the_Event    : constant gel.Remote.World.sprite_added_Event := gel.Remote.World.sprite_added_Event (to_Event);
       the_Sprite   : constant gel.Sprite.view                     := my_Client.Applet.World.fetch_Sprite (the_Event.Sprite);
       new_Response : constant Sprite_clicked_Response_view        := new Sprite_clicked_Response;
+      is_Ground    : constant Boolean                             :=           the_Sprite.Name'Length   >= 6
+                                                                      and then the_Sprite.Name (1 .. 6)  = "Ground";
    begin
-      --  log ("'" & the_Sprite.Name & "' added.");
-
       the_Sprite.user_Data_is (new sprite_Info);
 
-      if the_Sprite /= my_Client.target_Marker
+      if    the_Sprite /= my_Client.target_Marker
+        and not is_Ground
       then
          the_Sprite.is_Visible (False);
       end if;

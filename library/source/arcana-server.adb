@@ -288,6 +288,7 @@ is
 
       -- Terrain.
       --
+      --  Terrain.set_up_Ground   (in_World => the_World'Access);
       Terrain.set_up_Boulders (in_World => the_World'Access);
       Terrain.set_up_Trees    (in_World => the_World'Access);
    end open;

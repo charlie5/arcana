@@ -16,6 +16,44 @@ is
 
 
 
+   procedure set_up_Ground (in_World : gel.World.view)
+   is
+      Width       : constant Integer        := 100;
+      Height      : constant Integer        := 100;
+
+      half_Width  : constant gel.Math.Real  := gel.Math.Real (Width)  / 2.0;
+      half_Height : constant gel.Math.Real  := gel.Math.Real (Height) / 2.0;
+
+      Counter     :          Natural        := 0;
+      the_Ground  :          gel.Sprite.view;
+
+   begin
+      for Row in 1 .. Height
+      loop
+         for Col in 1 .. Width
+         loop
+            Counter    := Counter + 1;
+            the_Ground := gel.Forge.new_rectangle_Sprite (in_World    => in_World,
+                                                          Name        => "Ground ~" & Counter'Image,
+                                                          Site        => [gel.Math.Real (Col) - half_Width,
+                                                                          gel.Math.Real (Row) - half_Height,
+                                                                          -1.1],
+                                                          --  Site        => [ 0.0,
+                                                          --                   0.0,
+                                                          --                  -0.1],
+                                                          Mass        => 0.0,
+                                                          is_Tangible => False,
+                                                          Width       => 1.0,
+                                                          Height      => 1.0,
+                                                          Texture     => openGL.to_Asset ("assets/terrain/grass-1.jpg"));
+            in_World.add (the_Ground);
+         end loop;
+      end loop;
+   end set_up_Ground;
+
+
+
+
    procedure set_up_Boulders (in_World : gel.World.view)
    is
       use openGL,
